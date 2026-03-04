@@ -73,7 +73,7 @@
       <!-- 驱虫 -->
       <view v-else-if="currentTab === 'deworming'" class="tab-content">
         <text class="section-title">驱虫记录</text>
-        <button class="btn-add" @click="addRecord('deworming')">+ 添加驱虫记录</button>
+        <button class="btn-add" @click="showDewormingForm">+ 添加驱虫记录</button>
         
         <view class="reminder-box" v-if="nextDewormingDate">
           <text class="reminder-title">💊 下次驱虫提醒</text>
@@ -81,7 +81,18 @@
         </view>
         
         <view class="record-list">
-          <text class="empty-text">暂无记录</text>
+          <view class="record-item" v-for="(record, index) in dewormingRecords" :key="record._id || index">
+            <view class="record-main">
+              <text class="record-type">{{ record.type === 'internal' ? '体内驱虫' : '体外驱虫' }}</text>
+              <text class="record-brand">{{ record.brand }} - {{ record.product }}</text>
+              <text class="record-date">使用日期：{{ formatDate(record.usedAt) }}</text>
+              <text class="record-next" v-if="record.nextReminder">下次提醒：{{ formatDate(record.nextReminder) }}</text>
+            </view>
+            <view class="record-actions">
+              <text class="delete-btn" @click.stop="deleteDewormingRecord(record._id)">🗑️</text>
+            </view>
+          </view>
+          <text class="empty-text" v-if="dewormingRecords.length === 0">暂无记录</text>
         </view>
       </view>
 
@@ -161,12 +172,24 @@ export default {
       },
       currentTab: 'overview',
       weightRecords: [],
+      dewormingRecords: [],
+      vaccineRecords: [],
+      healthRecords: [],
+      foodRecords: [],
       nextDewormingDate: '',
       nextVaccineDate: '',
       currentFood: null,
       healthSymptom: '',
       healthObservation: '',
-      healthFiles: []
+      healthFiles: [],
+      dewormingForm: {
+        type: 'external',
+        brand: '',
+        product: '',
+        usedAt: 0,
+        nextReminder: 0,
+        remindEnabled: false
+      }
     }
   },
   onLoad(options) {
@@ -174,6 +197,10 @@ export default {
       this.petId = options.petId;
       this.loadPetDetail();
       this.loadWeightRecords();
+      this.loadDewormingRecords();
+      this.loadVaccineRecords();
+      this.loadFoodRecords();
+      this.loadHealthRecords();
     } else if (options.name) {
       this.petInfo.name = options.name;
     }
@@ -183,6 +210,10 @@ export default {
     if (this.petId) {
       this.loadPetDetail();
       this.loadWeightRecords();
+      this.loadDewormingRecords();
+      this.loadVaccineRecords();
+      this.loadFoodRecords();
+      this.loadHealthRecords();
     }
   },
   methods: {
@@ -266,14 +297,145 @@ export default {
       }
     },
     showDewormingForm() {
+      this.dewormingForm = {
+        type: 'external',
+        brand: '',
+        product: '',
+        usedAt: Date.now(),
+        nextReminder: 0,
+        remindEnabled: false
+      };
       uni.showModal({
         title: '添加驱虫记录',
         editable: true,
-        placeholderText: '请输入驱虫药品牌/型号',
+        placeholderText: '请输入品牌/型号（如：福来恩 体外驱虫）',
         success: (res) => {
           if (res.confirm && res.content) {
-            // TODO: 调用 deworming-record 云函数
-            uni.showToast({ title: '添加功能开发中', icon: 'none' });
+            const parts = res.content.split(' ');
+            this.dewormingForm.brand = parts[0] || '';
+            this.dewormingForm.product = parts[1] || '';
+            this.showDewormingTypeSelect();
+          }
+        }
+      });
+    },
+    showDewormingTypeSelect() {
+      uni.showActionSheet({
+        itemList: ['体内驱虫', '体外驱虫'],
+        success: (res) => {
+          this.dewormingForm.type = res.tapIndex === 0 ? 'internal' : 'external';
+          this.showDewormingDateSelect();
+        }
+      });
+    },
+    showDewormingDateSelect() {
+      uni.showModal({
+        title: '选择使用日期',
+        editable: true,
+        placeholderText: '请输入日期（YYYY-MM-DD）或留空使用今天',
+        success: (res) => {
+          if (res.confirm) {
+            if (res.content) {
+              this.dewormingForm.usedAt = new Date(res.content).getTime();
+            }
+            this.showDewormingReminder();
+          }
+        }
+      });
+    },
+    showDewormingReminder() {
+      uni.showModal({
+        title: '设置下次提醒',
+        content: '是否需要设置下次驱虫提醒？',
+        success: (res) => {
+          if (res.confirm) {
+            this.dewormingForm.remindEnabled = true;
+            // 默认 3 个月后
+            this.dewormingForm.nextReminder = Date.now() + 90 * 24 * 60 * 60 * 1000;
+            this.saveDewormingRecord();
+          } else {
+            this.dewormingForm.remindEnabled = false;
+            this.saveDewormingRecord();
+          }
+        }
+      });
+    },
+    async saveDewormingRecord() {
+      try {
+        const res = await uniCloud.callFunction({
+          name: 'deworming-record',
+          data: {
+            action: 'create',
+            petId: this.petId,
+            type: this.dewormingForm.type,
+            brand: this.dewormingForm.brand,
+            product: this.dewormingForm.product,
+            usedAt: this.dewormingForm.usedAt,
+            nextReminder: this.dewormingForm.nextReminder,
+            remindEnabled: this.dewormingForm.remindEnabled
+          }
+        });
+        
+        if (res.result.code === 201) {
+          uni.showToast({ title: '添加成功', icon: 'success' });
+          this.loadDewormingRecords();
+        } else {
+          uni.showToast({ title: res.result.message, icon: 'none' });
+        }
+      } catch (e) {
+        console.error('保存驱虫记录失败:', e);
+        uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
+      }
+    },
+    async loadDewormingRecords() {
+      if (!this.petId) return;
+      try {
+        const res = await uniCloud.callFunction({
+          name: 'deworming-record',
+          data: {
+            action: 'list',
+            petId: this.petId
+          }
+        });
+        if (res.result.code === 200) {
+          this.dewormingRecords = res.result.data.records || [];
+          // 计算下次驱虫日期
+          const upcoming = this.dewormingRecords
+            .filter(r => r.remindEnabled && r.nextReminder)
+            .sort((a, b) => a.nextReminder - b.nextReminder)[0];
+          if (upcoming) {
+            this.nextDewormingDate = this.formatDate(upcoming.nextReminder);
+          }
+        }
+      } catch (e) {
+        console.error('加载驱虫记录失败:', e);
+      }
+    },
+    async deleteDewormingRecord(recordId) {
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除这条驱虫记录吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              const delRes = await uniCloud.callFunction({
+                name: 'deworming-record',
+                data: {
+                  action: 'delete',
+                  recordId: recordId
+                }
+              });
+              
+              if (delRes.result.code === 200) {
+                uni.showToast({ title: '删除成功', icon: 'success' });
+                this.loadDewormingRecords();
+              } else {
+                uni.showToast({ title: delRes.result.message, icon: 'none' });
+              }
+            } catch (e) {
+              console.error('删除记录失败:', e);
+              uni.showToast({ title: '删除失败，请稍后重试', icon: 'none' });
+            }
           }
         }
       });
@@ -490,6 +652,53 @@ export default {
       if (!timestamp) return '-';
       const date = new Date(timestamp);
       return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    },
+    async loadVaccineRecords() {
+      if (!this.petId) return;
+      try {
+        const res = await uniCloud.callFunction({
+          name: 'vaccine-record',
+          data: { action: 'list', petId: this.petId }
+        });
+        if (res.result.code === 200) {
+          this.vaccineRecords = res.result.data.records || [];
+        }
+      } catch (e) {
+        console.error('加载疫苗记录失败:', e);
+      }
+    },
+    async loadFoodRecords() {
+      if (!this.petId) return;
+      try {
+        const res = await uniCloud.callFunction({
+          name: 'food-record',
+          data: { action: 'list', petId: this.petId }
+        });
+        if (res.result.code === 200) {
+          this.foodRecords = res.result.data.records || [];
+          // 显示当前粮食
+          const current = this.foodRecords.filter(r => !r.endDate || r.endDate === 0)[0];
+          if (current) {
+            this.currentFood = current;
+          }
+        }
+      } catch (e) {
+        console.error('加载粮食记录失败:', e);
+      }
+    },
+    async loadHealthRecords() {
+      if (!this.petId) return;
+      try {
+        const res = await uniCloud.callFunction({
+          name: 'health-record',
+          data: { action: 'list', petId: this.petId }
+        });
+        if (res.result.code === 200) {
+          this.healthRecords = res.result.data.records || [];
+        }
+      } catch (e) {
+        console.error('加载健康记录失败:', e);
+      }
     },
     getTabName(tab) {
       const names = {
