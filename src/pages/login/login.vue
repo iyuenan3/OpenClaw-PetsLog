@@ -8,12 +8,24 @@
     <view class="form">
       <view class="form-item">
         <text class="label">用户名</text>
-        <input class="input" v-model="form.username" placeholder="请输入用户名" />
+        <input 
+          class="input" 
+          type="text"
+          v-model="form.username" 
+          placeholder="请输入用户名"
+          :adjust-position="false"
+        />
       </view>
       
       <view class="form-item">
         <text class="label">密码</text>
-        <input class="input" v-model="form.password" type="password" placeholder="请输入密码" />
+        <input 
+          class="input" 
+          type="password"
+          v-model="form.password" 
+          placeholder="请输入密码"
+          :adjust-position="false"
+        />
       </view>
 
       <view class="buttons">
@@ -161,6 +173,7 @@ export default {
     border-radius: 8px;
     font-size: 16px;
     box-sizing: border-box;
+    background-color: #fff;
   }
 }
 
