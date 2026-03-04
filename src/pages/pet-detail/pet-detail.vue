@@ -102,7 +102,7 @@
       <!-- 健康 -->
       <view v-else-if="currentTab === 'health'" class="tab-content">
         <text class="section-title">健康状况</text>
-        <button class="btn-add" @click="addRecord('health')">+ 添加健康记录</button>
+        <button class="btn-add" @click="showHealthForm">+ 添加健康记录</button>
         <view class="record-list">
           <text class="empty-text">暂无记录</text>
         </view>
@@ -162,7 +162,9 @@ export default {
       weightRecords: [],
       nextDewormingDate: '',
       nextVaccineDate: '',
-      currentFood: null
+      currentFood: null,
+      healthSymptom: '',
+      healthObservation: ''
     }
   },
   onLoad(options) {
@@ -251,13 +253,25 @@ export default {
       });
     },
     showHealthForm() {
+      // 使用 actionSheet 选择记录类型
+      uni.showActionSheet({
+        itemList: ['呕吐/拉稀', '食欲不振', '精神不佳', '皮肤问题', '其他症状'],
+        success: (res) => {
+          const symptoms = ['呕吐/拉稀', '食欲不振', '精神不佳', '皮肤问题', '其他症状'];
+          this.healthSymptom = symptoms[res.tapIndex];
+          this.showHealthDetailForm();
+        }
+      });
+    },
+    showHealthDetailForm() {
       uni.showModal({
         title: '添加健康记录',
         editable: true,
-        placeholderText: '请输入症状描述',
+        placeholderText: `请描述${this.healthSymptom}的情况`,
         success: (res) => {
           if (res.confirm && res.content) {
-            // TODO: 调用 health-record 云函数
+            this.healthObservation = res.content;
+            // TODO: 显示媒体上传组件并调用 health-record 云函数
             uni.showToast({ title: '添加功能开发中', icon: 'none' });
           }
         }
