@@ -134,15 +134,27 @@
       <!-- 粮食 -->
       <view v-else-if="currentTab === 'food'" class="tab-content">
         <text class="section-title">粮食记录</text>
-        <button class="btn-add" @click="addRecord('food')">+ 添加粮食记录</button>
+        <button class="btn-add" @click="showFoodForm">+ 添加粮食记录</button>
         
         <view class="current-food" v-if="currentFood">
           <text class="current-food-title">🍖 当前粮食</text>
           <text class="current-food-brand">{{ currentFood.brand }} - {{ currentFood.product }}</text>
+          <text class="current-food-date" v-if="currentFood.startDate">开始日期：{{ formatDate(currentFood.startDate) }}</text>
         </view>
         
         <view class="record-list">
-          <text class="empty-text">暂无记录</text>
+          <view class="record-item" v-for="(record, index) in foodRecords" :key="record._id || index">
+            <view class="record-main">
+              <text class="record-type">{{ record.brand }} - {{ record.product }}</text>
+              <text class="record-brand">类型：{{ record.type === 'dry' ? '干粮' : record.type === 'wet' ? '湿粮' : '零食' }}</text>
+              <text class="record-date">开始日期：{{ formatDate(record.startDate) }}</text>
+              <text class="record-next" v-if="record.endDate">结束日期：{{ formatDate(record.endDate) }}</text>
+            </view>
+            <view class="record-actions">
+              <text class="delete-btn" @click.stop="deleteFoodRecord(record._id)">🗑️</text>
+            </view>
+          </view>
+          <text class="empty-text" v-if="foodRecords.length === 0">暂无记录</text>
         </view>
       </view>
 
@@ -209,6 +221,13 @@ export default {
         vaccinatedAt: 0,
         nextReminder: 0,
         remindEnabled: false
+      },
+      foodForm: {
+        brand: '',
+        product: '',
+        type: 'dry',
+        startDate: 0,
+        endDate: 0
       }
     }
   },
@@ -691,14 +710,114 @@ export default {
       }
     },
     showFoodForm() {
+      this.foodForm = {
+        brand: '',
+        product: '',
+        type: 'dry',
+        startDate: Date.now(),
+        endDate: 0
+      };
       uni.showModal({
         title: '添加粮食记录',
         editable: true,
-        placeholderText: '请输入粮食品牌/型号',
+        placeholderText: '请输入品牌/型号（如：渴望 鸡肉味）',
         success: (res) => {
           if (res.confirm && res.content) {
-            // TODO: 调用 food-record 云函数
-            uni.showToast({ title: '添加功能开发中', icon: 'none' });
+            const parts = res.content.split(' ');
+            this.foodForm.brand = parts[0] || '';
+            this.foodForm.product = parts[1] || '';
+            this.showFoodTypeSelect();
+          }
+        }
+      });
+    },
+    showFoodTypeSelect() {
+      uni.showActionSheet({
+        itemList: ['干粮', '湿粮', '零食'],
+        success: (res) => {
+          const types = ['dry', 'wet', 'snack'];
+          this.foodForm.type = types[res.tapIndex];
+          this.showFoodDateSelect();
+        }
+      });
+    },
+    showFoodDateSelect() {
+      uni.showModal({
+        title: '选择开始日期',
+        editable: true,
+        placeholderText: '请输入日期（YYYY-MM-DD）或留空使用今天',
+        success: (res) => {
+          if (res.confirm) {
+            if (res.content) {
+              this.foodForm.startDate = new Date(res.content).getTime();
+            }
+            uni.showModal({
+              title: '是否正在吃？',
+              content: '当前是否还在吃这个粮食？',
+              success: (res) => {
+                if (res.confirm) {
+                  this.foodForm.endDate = 0; // 正在吃
+                } else {
+                  this.foodForm.endDate = Date.now(); // 已吃完
+                }
+                this.saveFoodRecord();
+              }
+            });
+          }
+        }
+      });
+    },
+    async saveFoodRecord() {
+      try {
+        const res = await uniCloud.callFunction({
+          name: 'food-record',
+          data: {
+            action: 'create',
+            petId: this.petId,
+            brand: this.foodForm.brand,
+            product: this.foodForm.product,
+            type: this.foodForm.type,
+            startDate: this.foodForm.startDate,
+            endDate: this.foodForm.endDate
+          }
+        });
+        
+        if (res.result.code === 201) {
+          uni.showToast({ title: '添加成功', icon: 'success' });
+          this.loadFoodRecords();
+        } else {
+          uni.showToast({ title: res.result.message, icon: 'none' });
+        }
+      } catch (e) {
+        console.error('保存粮食记录失败:', e);
+        uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
+      }
+    },
+    async deleteFoodRecord(recordId) {
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除这条粮食记录吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              const delRes = await uniCloud.callFunction({
+                name: 'food-record',
+                data: {
+                  action: 'delete',
+                  recordId: recordId
+                }
+              });
+              
+              if (delRes.result.code === 200) {
+                uni.showToast({ title: '删除成功', icon: 'success' });
+                this.loadFoodRecords();
+              } else {
+                uni.showToast({ title: delRes.result.message, icon: 'none' });
+              }
+            } catch (e) {
+              console.error('删除记录失败:', e);
+              uni.showToast({ title: '删除失败，请稍后重试', icon: 'none' });
+            }
           }
         }
       });
