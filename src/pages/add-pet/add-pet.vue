@@ -7,7 +7,14 @@
     <view class="form">
       <view class="form-group">
         <text class="label">名字 *</text>
-        <input class="input" v-model="form.name" placeholder="请输入宠物名字" />
+        <input 
+          class="input" 
+          type="text"
+          v-model="form.name" 
+          placeholder="请输入宠物名字"
+          :adjust-position="false"
+          :hold-keyboard="false"
+        />
       </view>
 
       <view class="form-group">
@@ -24,7 +31,14 @@
 
       <view class="form-group">
         <text class="label">品种</text>
-        <input class="input" v-model="form.breed" placeholder="例如：英短、美短、金毛" />
+        <input 
+          class="input" 
+          type="text"
+          v-model="form.breed" 
+          placeholder="例如：英短、美短、金毛"
+          :adjust-position="false"
+          :hold-keyboard="false"
+        />
       </view>
 
       <view class="form-group">
@@ -53,12 +67,25 @@
 
       <view class="form-group">
         <text class="label">毛色</text>
-        <input class="input" v-model="form.color" placeholder="例如：金色、黑色、白色" />
+        <input 
+          class="input" 
+          type="text"
+          v-model="form.color" 
+          placeholder="例如：金色、黑色、白色"
+          :adjust-position="false"
+          :hold-keyboard="false"
+        />
       </view>
 
       <view class="form-group">
         <text class="label">备注</text>
-        <textarea class="textarea" v-model="form.notes" placeholder="性格、习惯、疾病史等" />
+        <textarea 
+          class="textarea" 
+          v-model="form.notes" 
+          placeholder="性格、习惯、疾病史等"
+          :adjust-position="false"
+          :disable-default-padding="true"
+        />
       </view>
     </view>
 
@@ -179,20 +206,34 @@ export default {
   
   .input, .textarea, .picker {
     width: 100%;
-    padding: 12px 15px;
-    background: #f5f5f5;
+    height: 44px;
+    padding: 0 15px;
+    background: #fff;
+    border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 16px;
     box-sizing: border-box;
+    color: #333;
+    position: relative;
+    z-index: 10;
+    
+    &:focus {
+      border-color: #667eea;
+      outline: none;
+    }
   }
   
   .textarea {
     height: 100px;
+    padding: 12px 15px;
     resize: none;
   }
   
   .picker {
     color: #333;
+    display: flex;
+    align-items: center;
+    height: 44px;
   }
 }
 
