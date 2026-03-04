@@ -6,19 +6,23 @@
     </view>
 
     <view class="form">
-      <u-form :model="form" ref="uForm">
-        <u-form-item label="用户名" prop="username">
-          <u-input v-model="form.username" placeholder="请输入用户名" />
-        </u-form-item>
-        
-        <u-form-item label="密码" prop="password">
-          <u-input v-model="form.password" type="password" placeholder="请输入密码" />
-        </u-form-item>
-      </u-form>
+      <view class="form-item">
+        <text class="label">用户名</text>
+        <input class="input" v-model="form.username" placeholder="请输入用户名" />
+      </view>
+      
+      <view class="form-item">
+        <text class="label">密码</text>
+        <input class="input" v-model="form.password" type="password" placeholder="请输入密码" />
+      </view>
 
       <view class="buttons">
-        <u-button type="primary" @click="handleLogin" text="登录" :loading="loading" />
-        <u-button type="info" @click="handleRegister" text="注册" style="margin-top: 20px;" :loading="loading" />
+        <button class="btn-primary" @click="handleLogin" :disabled="loading">
+          {{ loading ? '登录中...' : '登录' }}
+        </button>
+        <button class="btn-info" @click="handleRegister" :disabled="loading">
+          {{ loading ? '注册中...' : '注册' }}
+        </button>
       </view>
     </view>
   </view>
@@ -36,11 +40,9 @@ export default {
     }
   },
   onLoad() {
-    // 检查是否已登录（从本地存储获取 token）
     const token = uni.getStorageSync('token');
     if (token) {
       console.log('已登录，token:', token);
-      // TODO: 验证 token 有效性
     }
   },
   methods: {
@@ -60,13 +62,11 @@ export default {
         this.loading = false;
 
         if (res.result.code === 200) {
-          // 保存 token 和用户信息
           uni.setStorageSync('token', res.result.data.token);
           uni.setStorageSync('user', JSON.stringify(res.result.data.user));
           
           uni.showToast({ title: '登录成功', icon: 'success' });
           
-          // 跳转到首页
           setTimeout(() => {
             uni.switchTab({ url: '/pages/index/index' });
           }, 1000);
@@ -96,7 +96,6 @@ export default {
 
         if (res.result.code === 201) {
           uni.showToast({ title: '注册成功', icon: 'success' });
-          // 注册成功后自动登录
           this.handleLogin();
         } else {
           uni.showToast({ title: res.result.message, icon: 'none' });
@@ -145,7 +144,53 @@ export default {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
+.form-item {
+  margin-bottom: 20px;
+  
+  .label {
+    display: block;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+}
+
 .buttons {
   margin-top: 30px;
+  
+  button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 15px;
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+  }
+  
+  .btn-info {
+    background: #fff;
+    color: #667eea;
+    border: 2px solid #667eea !important;
+  }
 }
 </style>

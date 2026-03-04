@@ -12,9 +12,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
-/* 注意要写在第一行，同时给 style 标签加入 lang="scss" 属性 */
-@import "uview-plus/index.scss";
-
+<style>
 /* 每个页面公共 css */
+/* 暂时移除 uview-plus 全局导入，在页面中按需使用 */
 </style>

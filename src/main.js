@@ -1,10 +1,9 @@
 import { createSSRApp } from "vue";
 import App from "./App.vue";
-import uviewPlus from 'uview-plus';
 
 export function createApp() {
   const app = createSSRApp(App);
-  app.use(uviewPlus);
+  // uview-plus 在 H5 端通过 easycom 自动导入，不需要手动 use
   return {
     app,
   };
