@@ -1,0 +1,21 @@
+{
+  "name": "petslog-vue3-project",
+  "version": "1.0.0",
+  "description": "宠物健康管理系统 - uni-app Vue3 + uniCloud",
+  "main": "main.js",
+  "scripts": {
+    "dev:h5": "vite",
+    "dev:mp-weixin": "vite --mode mp-weixin",
+    "build:h5": "vite build",
+    "build:mp-weixin": "vite build --mode mp-weixin"
+  },
+  "dependencies": {
+    "uview-plus": "^3.0.0",
+    "echarts": "^5.4.0",
+    "vue": "^3.2.47"
+  },
+  "devDependencies": {
+    "@dcloudio/vite-plugin-uni": "^3.0.0",
+    "vite": "^4.0.0"
+  }
+}
