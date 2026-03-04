@@ -13,7 +13,7 @@
           type="text"
           v-model="form.username" 
           placeholder="请输入用户名"
-          :adjust-position="false"
+          id="username-input"
         />
       </view>
       
@@ -24,7 +24,7 @@
           type="password"
           v-model="form.password" 
           placeholder="请输入密码"
-          :adjust-position="false"
+          id="password-input"
         />
       </view>
 
@@ -127,6 +127,8 @@ export default {
   padding: 40px 30px;
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -154,30 +156,35 @@ export default {
   border-radius: 20px;
   padding: 30px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  flex: 1;
 }
 
 .form-item {
   margin-bottom: 20px;
+  position: relative;
   
   .label {
     display: block;
     font-size: 14px;
     color: #666;
     margin-bottom: 8px;
+    font-weight: bold;
   }
   
   .input {
     width: 100%;
-    padding: 12px 15px;
+    height: 44px;
+    padding: 0 15px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 16px;
-    box-sizing: border-box;
     background-color: #fff;
-    position: relative;
-    z-index: 10;
-    outline: none;
-    -webkit-appearance: none;
+    color: #333;
+    
+    &:focus {
+      border-color: #667eea;
+      outline: none;
+    }
   }
 }
 
@@ -186,7 +193,7 @@ export default {
   
   button {
     width: 100%;
-    padding: 14px;
+    height: 48px;
     border-radius: 10px;
     font-size: 16px;
     border: none;
