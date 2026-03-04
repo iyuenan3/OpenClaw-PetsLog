@@ -164,7 +164,8 @@ export default {
       nextVaccineDate: '',
       currentFood: null,
       healthSymptom: '',
-      healthObservation: ''
+      healthObservation: '',
+      healthFiles: []
     }
   },
   onLoad(options) {
@@ -264,6 +265,8 @@ export default {
       });
     },
     showHealthDetailForm() {
+      this.healthObservation = '';
+      this.healthFiles = [];
       uni.showModal({
         title: '添加健康记录',
         editable: true,
@@ -271,11 +274,81 @@ export default {
         success: (res) => {
           if (res.confirm && res.content) {
             this.healthObservation = res.content;
-            // TODO: 显示媒体上传组件并调用 health-record 云函数
-            uni.showToast({ title: '添加功能开发中', icon: 'none' });
+            this.showHealthUploadForm();
           }
         }
       });
+    },
+    showHealthUploadForm() {
+      // 显示媒体上传组件（简化版，实际应该用弹窗或新页面）
+      uni.showActionSheet({
+        itemList: ['添加照片', '完成提交'],
+        success: async (res) => {
+          if (res.tapIndex === 0) {
+            // 选择照片
+            try {
+              const chooseRes = await uni.chooseImage({
+                count: 3,
+                sourceType: ['album', 'camera']
+              });
+              
+              this.healthFiles = chooseRes.tempFilePaths.map(path => ({
+                type: 'image',
+                path: path
+              }));
+              
+              // 再次显示选项
+              this.showHealthUploadForm();
+            } catch (e) {
+              console.error('选择照片失败:', e);
+            }
+          } else if (res.tapIndex === 1) {
+            // 提交记录
+            await this.saveHealthRecord();
+          }
+        }
+      });
+    },
+    async saveHealthRecord() {
+      try {
+        // 上传文件
+        let attachmentUrls = [];
+        if (this.healthFiles.length > 0) {
+          const uploadPromises = this.healthFiles.map((file, index) => {
+            const fileName = `health/${this.petId}/${Date.now()}_${index}.jpg`;
+            return uniCloud.uploadFile({
+              cloudPath: fileName,
+              filePath: file.path
+            }).then(res => res.fileID);
+          });
+          
+          attachmentUrls = await Promise.all(uploadPromises);
+        }
+        
+        // 调用云函数
+        const res = await uniCloud.callFunction({
+          name: 'health-record',
+          data: {
+            action: 'create',
+            petId: this.petId,
+            symptom: this.healthSymptom,
+            observation: this.healthObservation,
+            status: 'observing',
+            recordedAt: Date.now(),
+            attachments: attachmentUrls
+          }
+        });
+        
+        if (res.result.code === 201) {
+          uni.showToast({ title: '添加成功', icon: 'success' });
+          // TODO: 刷新健康记录列表
+        } else {
+          uni.showToast({ title: res.result.message, icon: 'none' });
+        }
+      } catch (e) {
+        console.error('保存健康记录失败:', e);
+        uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
+      }
     },
     showFoodForm() {
       uni.showModal({
