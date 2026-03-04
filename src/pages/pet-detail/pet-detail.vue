@@ -69,6 +69,60 @@
         </view>
       </view>
 
+      <!-- 驱虫 -->
+      <view v-else-if="currentTab === 'deworming'" class="tab-content">
+        <text class="section-title">驱虫记录</text>
+        <button class="btn-add" @click="addRecord('deworming')">+ 添加驱虫记录</button>
+        
+        <view class="reminder-box" v-if="nextDewormingDate">
+          <text class="reminder-title">💊 下次驱虫提醒</text>
+          <text class="reminder-date">{{ nextDewormingDate }}</text>
+        </view>
+        
+        <view class="record-list">
+          <text class="empty-text">暂无记录</text>
+        </view>
+      </view>
+
+      <!-- 疫苗 -->
+      <view v-else-if="currentTab === 'vaccine'" class="tab-content">
+        <text class="section-title">疫苗记录</text>
+        <button class="btn-add" @click="addRecord('vaccine')">+ 添加疫苗记录</button>
+        
+        <view class="reminder-box" v-if="nextVaccineDate">
+          <text class="reminder-title">💉 下次疫苗提醒</text>
+          <text class="reminder-date">{{ nextVaccineDate }}</text>
+        </view>
+        
+        <view class="record-list">
+          <text class="empty-text">暂无记录</text>
+        </view>
+      </view>
+
+      <!-- 健康 -->
+      <view v-else-if="currentTab === 'health'" class="tab-content">
+        <text class="section-title">健康状况</text>
+        <button class="btn-add" @click="addRecord('health')">+ 添加健康记录</button>
+        <view class="record-list">
+          <text class="empty-text">暂无记录</text>
+        </view>
+      </view>
+
+      <!-- 粮食 -->
+      <view v-else-if="currentTab === 'food'" class="tab-content">
+        <text class="section-title">粮食记录</text>
+        <button class="btn-add" @click="addRecord('food')">+ 添加粮食记录</button>
+        
+        <view class="current-food" v-if="currentFood">
+          <text class="current-food-title">🍖 当前粮食</text>
+          <text class="current-food-brand">{{ currentFood.brand }} - {{ currentFood.product }}</text>
+        </view>
+        
+        <view class="record-list">
+          <text class="empty-text">暂无记录</text>
+        </view>
+      </view>
+
       <!-- 其他 Tab 占位 -->
       <view v-else class="placeholder">
         <text class="placeholder-emoji">🚧</text>
@@ -105,7 +159,10 @@ export default {
         avatar: ''
       },
       currentTab: 'overview',
-      weightRecords: []
+      weightRecords: [],
+      nextDewormingDate: '',
+      nextVaccineDate: '',
+      currentFood: null
     }
   },
   onLoad(options) {
@@ -157,13 +214,67 @@ export default {
         if (weightValue) {
           await this.saveWeightRecord(weightValue);
         }
-      } else {
-        uni.showModal({
-          title: '添加记录',
-          content: `${this.getTypeName(type)} 功能开发中`,
-          showCancel: false
-        });
+      } else if (type === 'deworming') {
+        this.showDewormingForm();
+      } else if (type === 'vaccine') {
+        this.showVaccineForm();
+      } else if (type === 'health') {
+        this.showHealthForm();
+      } else if (type === 'food') {
+        this.showFoodForm();
       }
+    },
+    showDewormingForm() {
+      uni.showModal({
+        title: '添加驱虫记录',
+        editable: true,
+        placeholderText: '请输入驱虫药品牌/型号',
+        success: (res) => {
+          if (res.confirm && res.content) {
+            // TODO: 调用 deworming-record 云函数
+            uni.showToast({ title: '添加功能开发中', icon: 'none' });
+          }
+        }
+      });
+    },
+    showVaccineForm() {
+      uni.showModal({
+        title: '添加疫苗记录',
+        editable: true,
+        placeholderText: '请输入疫苗名称/类型',
+        success: (res) => {
+          if (res.confirm && res.content) {
+            // TODO: 调用 vaccine-record 云函数
+            uni.showToast({ title: '添加功能开发中', icon: 'none' });
+          }
+        }
+      });
+    },
+    showHealthForm() {
+      uni.showModal({
+        title: '添加健康记录',
+        editable: true,
+        placeholderText: '请输入症状描述',
+        success: (res) => {
+          if (res.confirm && res.content) {
+            // TODO: 调用 health-record 云函数
+            uni.showToast({ title: '添加功能开发中', icon: 'none' });
+          }
+        }
+      });
+    },
+    showFoodForm() {
+      uni.showModal({
+        title: '添加粮食记录',
+        editable: true,
+        placeholderText: '请输入粮食品牌/型号',
+        success: (res) => {
+          if (res.confirm && res.content) {
+            // TODO: 调用 food-record 云函数
+            uni.showToast({ title: '添加功能开发中', icon: 'none' });
+          }
+        }
+      });
     },
     showWeightInput() {
       return new Promise((resolve) => {
@@ -371,6 +482,50 @@ export default {
       padding: 14px;
       margin-bottom: 15px;
       font-size: 16px;
+    }
+    
+    .reminder-box {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid #ffc107;
+      
+      .reminder-title {
+        display: block;
+        font-size: 14px;
+        color: #856404;
+        margin-bottom: 5px;
+      }
+      
+      .reminder-date {
+        display: block;
+        font-size: 16px;
+        font-weight: bold;
+        color: #856404;
+      }
+    }
+    
+    .current-food {
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid #28a745;
+      
+      .current-food-title {
+        display: block;
+        font-size: 14px;
+        color: #155724;
+        margin-bottom: 5px;
+      }
+      
+      .current-food-brand {
+        display: block;
+        font-size: 16px;
+        font-weight: bold;
+        color: #155724;
+      }
     }
     
     .record-list {

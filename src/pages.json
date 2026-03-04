@@ -30,6 +30,12 @@
 			"style": {
 				"navigationBarTitleText": "添加宠物"
 			}
+		},
+		{
+			"path": "pages/reminders/reminders",
+			"style": {
+				"navigationBarTitleText": "提醒设置"
+			}
 		}
 	],
 	"globalStyle": {
