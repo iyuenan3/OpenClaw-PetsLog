@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+const { describe, it, expect } = require('@jest/globals');
 
 describe('宠物档案管理', () => {
   it('应该能创建宠物', () => {
