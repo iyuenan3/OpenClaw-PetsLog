@@ -48,13 +48,24 @@
       <!-- 体重 -->
       <view v-else-if="currentTab === 'weight'" class="tab-content">
         <text class="section-title">体重记录</text>
+        
+        <!-- 体重曲线图 -->
+        <weight-chart :records="weightRecords" :height="280" v-if="weightRecords.length > 0" />
+        
         <view class="add-btn" @click="addRecord('weight')">
           <text>+ 添加记录</text>
         </view>
+        
         <view class="record-list">
           <view class="record-item" v-for="(record, index) in weightRecords" :key="record._id || index">
-            <text class="record-value">{{ record.weight }} kg</text>
-            <text class="record-date">{{ formatDate(record.recordedAt) }}</text>
+            <view class="record-main">
+              <text class="record-value">{{ record.weight }} kg</text>
+              <text class="record-note" v-if="record.note">{{ record.note }}</text>
+            </view>
+            <view class="record-actions">
+              <text class="record-date">{{ formatDate(record.recordedAt) }}</text>
+              <text class="delete-btn" @click.stop="deleteRecord(record._id)">🗑️</text>
+            </view>
           </view>
           <text class="empty-text" v-if="weightRecords.length === 0">暂无记录</text>
         </view>
@@ -74,7 +85,12 @@
 </template>
 
 <script>
+import WeightChart from '@/components/WeightChart.vue';
+
 export default {
+  components: {
+    WeightChart
+  },
   data() {
     return {
       petId: '',
@@ -137,18 +153,66 @@ export default {
         console.error('加载体重记录失败:', e);
       }
     },
-    addRecord(type) {
-      uni.showModal({
-        title: '添加记录',
-        editable: true,
-        placeholderText: type === 'weight' ? '请输入体重 (kg)' : '请输入内容',
-        success: (res) => {
-          if (res.confirm && res.content) {
-            // TODO: 调用对应云函数
-            uni.showToast({ title: '添加功能开发中', icon: 'none' });
-          }
+    async addRecord(type) {
+      if (type === 'weight') {
+        // 使用自定义表单弹窗
+        const weightValue = await this.showWeightInput();
+        if (weightValue) {
+          await this.saveWeightRecord(weightValue);
         }
+      } else {
+        uni.showModal({
+          title: '添加记录',
+          content: `${this.getTypeName(type)} 功能开发中`,
+          showCancel: false
+        });
+      }
+    },
+    showWeightInput() {
+      return new Promise((resolve) => {
+        uni.showModal({
+          title: '添加体重记录',
+          editable: true,
+          placeholderText: '请输入体重 (kg)',
+          success: (res) => {
+            if (res.confirm && res.content) {
+              const weight = parseFloat(res.content);
+              if (isNaN(weight) || weight <= 0) {
+                uni.showToast({ title: '请输入有效的体重', icon: 'none' });
+                resolve(null);
+              } else {
+                resolve(weight);
+              }
+            } else {
+              resolve(null);
+            }
+          }
+        });
       });
+    },
+    async saveWeightRecord(weight) {
+      try {
+        const res = await uniCloud.callFunction({
+          name: 'weight-record',
+          data: {
+            action: 'create',
+            petId: this.petId,
+            weight: weight,
+            recordedAt: Date.now()
+          }
+        });
+        
+        if (res.result.code === 201) {
+          uni.showToast({ title: '添加成功', icon: 'success' });
+          // 刷新记录列表
+          this.loadWeightRecords();
+        } else {
+          uni.showToast({ title: res.result.message, icon: 'none' });
+        }
+      } catch (e) {
+        console.error('保存体重记录失败:', e);
+        uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
+      }
     },
     deletePet() {
       uni.showModal({
@@ -158,6 +222,35 @@ export default {
           if (res.confirm) {
             // TODO: 调用 pet-delete 云函数
             uni.showToast({ title: '删除功能开发中', icon: 'none' });
+          }
+        }
+      });
+    },
+    async deleteRecord(recordId) {
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除这条记录吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              const delRes = await uniCloud.callFunction({
+                name: 'weight-record',
+                data: {
+                  action: 'delete',
+                  recordId: recordId
+                }
+              });
+              
+              if (delRes.result.code === 200) {
+                uni.showToast({ title: '删除成功', icon: 'success' });
+                this.loadWeightRecords();
+              } else {
+                uni.showToast({ title: delRes.result.message, icon: 'none' });
+              }
+            } catch (e) {
+              console.error('删除记录失败:', e);
+              uni.showToast({ title: '删除失败，请稍后重试', icon: 'none' });
+            }
           }
         }
       });
@@ -282,26 +375,58 @@ export default {
       .record-item {
         display: flex;
         justify-content: space-between;
-        padding: 12px 15px;
+        align-items: center;
+        padding: 15px;
         background: #fff;
         border-radius: 8px;
         margin-bottom: 10px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         
-        .record-value {
-          font-weight: bold;
-          color: #667eea;
+        .record-main {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          
+          .record-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+          }
+          
+          .record-note {
+            font-size: 12px;
+            color: #666;
+          }
         }
         
-        .record-date {
-          color: #999;
-          font-size: 12px;
+        .record-actions {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          
+          .record-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+          }
+          
+          .delete-btn {
+            font-size: 16px;
+            padding: 5px;
+            opacity: 0.6;
+            
+            &:active {
+              opacity: 1;
+            }
+          }
         }
       }
       
       .empty-text {
         text-align: center;
         color: #999;
-        padding: 20px;
+        padding: 30px;
       }
     }
   }
