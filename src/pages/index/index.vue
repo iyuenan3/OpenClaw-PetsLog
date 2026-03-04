@@ -5,8 +5,10 @@
         <text class="welcome">欢迎，{{ user.username }}</text>
         <text class="logout" @click="handleLogout">退出</text>
       </view>
-      <text class="title">我的宠物</text>
-      <u-button type="primary" size="small" @click="addPet" text="+ 添加" />
+      <view class="header-bottom">
+        <text class="title">我的宠物</text>
+        <button class="btn-add" @click="addPet">+ 添加</button>
+      </view>
     </view>
 
     <view class="pet-list">
@@ -17,14 +19,16 @@
           <text class="pet-breed">{{ pet.breed || '未知品种' }}</text>
           <text class="pet-age">{{ pet.age || '未知年龄' }}</text>
         </view>
+        <text class="arrow">›</text>
       </view>
 
       <view class="empty-state" v-if="pets.length === 0 && !loading">
-        <text class="empty-text">🐾 还没有宠物，点击右上角添加</text>
+        <text class="empty-emoji">🐾</text>
+        <text class="empty-text">还没有宠物，点击右上角添加</text>
       </view>
 
       <view class="loading" v-if="loading">
-        <u-loading mode="circle" />
+        <text class="loading-spinner">⏳</text>
         <text class="loading-text">加载中...</text>
       </view>
     </view>
@@ -41,17 +45,14 @@ export default {
     }
   },
   onLoad() {
-    // 获取用户信息
     const userStr = uni.getStorageSync('user');
     if (userStr) {
       this.user = JSON.parse(userStr);
     } else {
-      // 未登录，跳转到登录页
       uni.reLaunch({ url: '/pages/login/login' });
     }
   },
   onShow() {
-    // 每次显示页面时刷新宠物列表
     this.loadPets();
   },
   methods: {
@@ -63,9 +64,7 @@ export default {
         
         const res = await uniCloud.callFunction({
           name: 'pet-list',
-          data: {
-            familyId: user.familyId
-          }
+          data: { familyId: user.familyId }
         });
 
         this.loading = false;
@@ -130,7 +129,7 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-    padding: 10px 15px;
+    padding: 12px 15px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 10px;
     
@@ -146,9 +145,25 @@ export default {
     }
   }
   
-  .title {
-    font-size: 24px;
-    font-weight: bold;
+  .header-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .btn-add {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 14px;
+    }
   }
 }
 
@@ -179,6 +194,7 @@ export default {
         font-size: 18px;
         font-weight: bold;
         margin-bottom: 5px;
+        color: #333;
       }
       
       .pet-breed {
@@ -192,12 +208,24 @@ export default {
         color: #999;
       }
     }
+    
+    .arrow {
+      font-size: 24px;
+      color: #ccc;
+      margin-left: 10px;
+    }
   }
 }
 
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
+  
+  .empty-emoji {
+    font-size: 60px;
+    display: block;
+    margin-bottom: 15px;
+  }
   
   .empty-text {
     font-size: 16px;
@@ -211,10 +239,20 @@ export default {
   align-items: center;
   padding: 40px;
   
+  .loading-spinner {
+    font-size: 40px;
+    animation: spin 1s linear infinite;
+  }
+  
   .loading-text {
     margin-top: 10px;
     color: #999;
     font-size: 14px;
   }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

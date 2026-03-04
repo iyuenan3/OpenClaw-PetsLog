@@ -59,7 +59,6 @@ export default {
   data() {
     return {
       recentRecords: [
-        // 测试数据
         { icon: '⚖️', petName: '小葵', desc: '体重：5.2kg', date: '今天' },
         { icon: '💊', petName: '飞流', desc: '体外驱虫', date: '昨天' },
         { icon: '💉', petName: '乔治', desc: '疫苗接种', date: '3 天前' }
@@ -68,7 +67,6 @@ export default {
   },
   methods: {
     goToType(type) {
-      // TODO: 跳转到对应记录列表页或弹出添加框
       uni.showModal({
         title: '记录管理',
         content: `${this.getTypeName(type)} 功能开发中`,
@@ -102,6 +100,7 @@ export default {
   .title {
     font-size: 24px;
     font-weight: bold;
+    color: #333;
   }
 }
 
@@ -130,6 +129,7 @@ export default {
     .name {
       font-size: 16px;
       font-weight: bold;
+      color: #333;
       margin-bottom: 5px;
     }
     
@@ -146,6 +146,7 @@ export default {
     font-weight: bold;
     margin-bottom: 15px;
     display: block;
+    color: #333;
   }
   
   .recent-list {
@@ -171,6 +172,7 @@ export default {
         .recent-pet {
           font-size: 16px;
           font-weight: bold;
+          color: #333;
           margin-bottom: 3px;
         }
         

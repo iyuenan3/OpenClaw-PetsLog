@@ -9,8 +9,8 @@
       </view>
     </view>
 
-    <view class="tabs">
-      <scroll-view scroll-x class="tab-scroll">
+    <scroll-view scroll-x class="tab-scroll">
+      <view class="tabs">
         <view class="tab" :class="{ active: currentTab === 'overview' }" @click="currentTab = 'overview'">
           <text>📋 概览</text>
         </view>
@@ -29,8 +29,8 @@
         <view class="tab" :class="{ active: currentTab === 'deworming' }" @click="currentTab = 'deworming'">
           <text>💊 驱虫</text>
         </view>
-      </scroll-view>
-    </view>
+      </view>
+    </scroll-view>
 
     <view class="content">
       <!-- 概览 -->
@@ -52,9 +52,7 @@
         <!-- 体重曲线图 -->
         <weight-chart :records="weightRecords" :height="280" v-if="weightRecords.length > 0" />
         
-        <view class="add-btn" @click="addRecord('weight')">
-          <text>+ 添加记录</text>
-        </view>
+        <button class="btn-add" @click="addRecord('weight')">+ 添加体重记录</button>
         
         <view class="record-list">
           <view class="record-item" v-for="(record, index) in weightRecords" :key="record._id || index">
@@ -73,13 +71,14 @@
 
       <!-- 其他 Tab 占位 -->
       <view v-else class="placeholder">
+        <text class="placeholder-emoji">🚧</text>
         <text>{{ getTabName(currentTab) }} 功能开发中...</text>
       </view>
     </view>
 
     <!-- 底部操作栏 -->
-    <view class="bottom-bar">
-      <u-button type="error" size="small" @click="deletePet" text="删除宠物" />
+    <view class="bottom-bar" v-if="currentTab === 'overview'">
+      <button class="btn-delete" @click="deletePet">删除宠物</button>
     </view>
   </view>
 </template>
@@ -120,8 +119,7 @@ export default {
   methods: {
     async loadPetDetail() {
       try {
-        // TODO: 调用 pet-detail 云函数（或从 pet-list 获取）
-        // 暂时使用测试数据
+        // TODO: 调用 pet-detail 云函数
         this.petInfo = {
           name: '小葵',
           breed: '西伯利亚猫',
@@ -155,7 +153,6 @@ export default {
     },
     async addRecord(type) {
       if (type === 'weight') {
-        // 使用自定义表单弹窗
         const weightValue = await this.showWeightInput();
         if (weightValue) {
           await this.saveWeightRecord(weightValue);
@@ -204,7 +201,6 @@ export default {
         
         if (res.result.code === 201) {
           uni.showToast({ title: '添加成功', icon: 'success' });
-          // 刷新记录列表
           this.loadWeightRecords();
         } else {
           uni.showToast({ title: res.result.message, icon: 'none' });
@@ -220,7 +216,6 @@ export default {
         content: '确定要删除这只宠物吗？相关记录也会被删除。',
         success: (res) => {
           if (res.confirm) {
-            // TODO: 调用 pet-delete 云函数
             uni.showToast({ title: '删除功能开发中', icon: 'none' });
           }
         }
@@ -312,13 +307,15 @@ export default {
   }
 }
 
-.tabs {
+.tab-scroll {
   background: #fff;
   border-bottom: 1px solid #eee;
-  
-  .tab-scroll {
-    white-space: nowrap;
-  }
+}
+
+.tabs {
+  display: flex;
+  white-space: nowrap;
+  padding: 0 10px;
   
   .tab {
     display: inline-block;
@@ -342,6 +339,7 @@ export default {
       font-weight: bold;
       margin-bottom: 15px;
       display: block;
+      color: #333;
     }
     
     .info-item {
@@ -351,6 +349,7 @@ export default {
       background: #fff;
       border-radius: 8px;
       margin-bottom: 10px;
+      color: #666;
     }
   }
   
@@ -360,15 +359,18 @@ export default {
       font-weight: bold;
       margin-bottom: 15px;
       display: block;
+      color: #333;
     }
     
-    .add-btn {
-      padding: 12px 15px;
-      background: #667eea;
+    .btn-add {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #fff;
-      border-radius: 8px;
-      text-align: center;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
       margin-bottom: 15px;
+      font-size: 16px;
     }
     
     .record-list {
@@ -415,10 +417,6 @@ export default {
             font-size: 16px;
             padding: 5px;
             opacity: 0.6;
-            
-            &:active {
-              opacity: 1;
-            }
           }
         }
       }
@@ -433,8 +431,14 @@ export default {
   
   .placeholder {
     text-align: center;
-    padding: 60px 20px;
+    padding: 80px 20px;
     color: #999;
+    
+    .placeholder-emoji {
+      font-size: 60px;
+      display: block;
+      margin-bottom: 15px;
+    }
   }
 }
 
@@ -446,5 +450,15 @@ export default {
   padding: 10px 20px;
   background: #fff;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  
+  .btn-delete {
+    width: 100%;
+    background: #fff;
+    color: #ff4444;
+    border: 2px solid #ff4444;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 16px;
+  }
 }
 </style>
