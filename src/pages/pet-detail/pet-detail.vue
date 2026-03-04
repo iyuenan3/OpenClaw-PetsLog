@@ -126,8 +126,21 @@
       <view v-else-if="currentTab === 'health'" class="tab-content">
         <text class="section-title">健康状况</text>
         <button class="btn-add" @click="showHealthForm">+ 添加健康记录</button>
+        
         <view class="record-list">
-          <text class="empty-text">暂无记录</text>
+          <view class="record-item" v-for="(record, index) in healthRecords" :key="record._id || index">
+            <view class="record-main">
+              <text class="record-type">{{ record.symptom }}</text>
+              <text class="record-brand">观察：{{ record.observation }}</text>
+              <text class="record-date">日期：{{ formatDate(record.recordedAt) }}</text>
+              <text class="record-status" v-if="record.status">状态：{{ record.status === 'observing' ? '观察中' : record.status === 'treatment' ? '治疗中' : '已恢复' }}</text>
+              <text class="record-attachments" v-if="record.attachments && record.attachments.length > 0">📎 {{ record.attachments.length }} 个附件</text>
+            </view>
+            <view class="record-actions">
+              <text class="delete-btn" @click.stop="deleteHealthRecord(record._id)">🗑️</text>
+            </view>
+          </view>
+          <text class="empty-text" v-if="healthRecords.length === 0">暂无记录</text>
         </view>
       </view>
 
