@@ -8,9 +8,7 @@
 ## [未发布]
 
 ### Added
-- 初始化项目结构
-- 配置 uniCloud 阿里云空间
-- 安装 uview-plus UI 组件和 echarts 图表库
+- 无
 
 ### Changed
 - 无
@@ -25,7 +23,32 @@
 - 无
 
 ### Security
-- 配置 .gitignore 禁止提交敏感信息
+- 无
+
+---
+
+## [1.0.0-alpha.2] - 2026-03-04
+
+### Added - 前后端联调完成
+
+#### 前端页面
+- `pages/login/login.vue`: 登录/注册页面，对接云函数
+- `pages/index/index.vue`: 首页宠物列表，支持退出登录
+- `pages/pet-detail/pet-detail.vue`: 宠物详情页（6 个 Tab）
+- `pages/records/records.vue`: 记录管理入口
+
+#### 功能实现
+- 用户登录/注册（token 认证，本地存储）
+- 宠物列表加载（自动计算年龄）
+- 宠物详情多 Tab 切换
+- tabBar 导航（宠物/记录）
+
+#### 双端适配
+- 微信小程序 ✅
+- H5 网页端 ✅
+- 同一套代码，多端编译
+
+---
 
 ---
 
