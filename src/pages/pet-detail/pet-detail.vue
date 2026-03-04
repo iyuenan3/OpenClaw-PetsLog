@@ -173,6 +173,7 @@ export default {
     if (options.petId) {
       this.petId = options.petId;
       this.loadPetDetail();
+      this.loadWeightRecords();
     } else if (options.name) {
       this.petInfo.name = options.name;
     }
@@ -197,6 +198,8 @@ export default {
       }
     },
     async loadWeightRecords() {
+      if (!this.petId) return;
+      
       try {
         const res = await uniCloud.callFunction({
           name: 'weight-record',
