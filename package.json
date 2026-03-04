@@ -6,15 +6,18 @@
     "dev:h5": "uni",
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:h5": "uni build",
-    "build:mp-weixin": "uni build -p mp-weixin"
+    "build:mp-weixin": "uni build -p mp-weixin",
+    "test:unit": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "echo 'Lint placeholder'"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-4080720251210001",
     "@dcloudio/uni-components": "3.0.0-4080720251210001",
     "@dcloudio/uni-h5": "3.0.0-4080720251210001",
+    "echarts": "^6.0.0",
     "vue": "^3.4.21",
-    "vue-i18n": "^9.1.9",
-    "echarts": "^6.0.0"
+    "vue-i18n": "^9.1.9"
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.8",
@@ -22,8 +25,11 @@
     "@dcloudio/uni-cli-shared": "3.0.0-4080720251210001",
     "@dcloudio/uni-stacktracey": "3.0.0-4080720251210001",
     "@dcloudio/vite-plugin-uni": "3.0.0-4080720251210001",
-    "vite": "5.2.8",
+    "@jest/globals": "^30.2.0",
+    "babel-jest": "^30.2.0",
+    "jest": "^30.2.0",
     "sass": "^1.77.0",
-    "sass-loader": "^14.2.1"
+    "sass-loader": "^14.2.1",
+    "vite": "5.2.8"
   }
 }

@@ -1,0 +1,87 @@
+name: PetsLog CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run lint (if configured)
+      run: npm run lint --if-present
+    
+    - name: Run unit tests
+      run: npm run test:unit --if-present
+    
+    - name: Build H5
+      run: npm run build:h5
+    
+    - name: Build 微信小程序
+      run: npm run build:mp-weixin
+    
+    - name: Upload H5 build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: h5-build-${{ matrix.node-version }}
+        path: dist/build/h5
+    
+    - name: Upload 小程序 build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: mp-weixin-build-${{ matrix.node-version }}
+        path: dist/build/mp-weixin
+
+  deploy-h5:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20.x
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build H5
+      run: npm run build:h5
+    
+    - name: Deploy to uniCloud (placeholder)
+      run: |
+        echo "🚀 H5 build completed!"
+        echo "📦 Upload to uniCloud manually or configure deployment"
+        # TODO: Configure uniCloud deployment
+        # 可以使用 uni-cloud-cli 或其他方式部署到 uniCloud
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          dist/build/h5/**
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
