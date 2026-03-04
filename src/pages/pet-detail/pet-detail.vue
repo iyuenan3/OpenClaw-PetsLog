@@ -99,7 +99,7 @@
       <!-- 疫苗 -->
       <view v-else-if="currentTab === 'vaccine'" class="tab-content">
         <text class="section-title">疫苗记录</text>
-        <button class="btn-add" @click="addRecord('vaccine')">+ 添加疫苗记录</button>
+        <button class="btn-add" @click="showVaccineForm">+ 添加疫苗记录</button>
         
         <view class="reminder-box" v-if="nextVaccineDate">
           <text class="reminder-title">💉 下次疫苗提醒</text>
@@ -107,7 +107,18 @@
         </view>
         
         <view class="record-list">
-          <text class="empty-text">暂无记录</text>
+          <view class="record-item" v-for="(record, index) in vaccineRecords" :key="record._id || index">
+            <view class="record-main">
+              <text class="record-type">{{ record.name }}</text>
+              <text class="record-brand">{{ record.type }} - {{ record.brand }}</text>
+              <text class="record-date">接种日期：{{ formatDate(record.vaccinatedAt) }}</text>
+              <text class="record-next" v-if="record.nextReminder">下次接种：{{ formatDate(record.nextReminder) }}</text>
+            </view>
+            <view class="record-actions">
+              <text class="delete-btn" @click.stop="deleteVaccineRecord(record._id)">🗑️</text>
+            </view>
+          </view>
+          <text class="empty-text" v-if="vaccineRecords.length === 0">暂无记录</text>
         </view>
       </view>
 
@@ -187,6 +198,15 @@ export default {
         brand: '',
         product: '',
         usedAt: 0,
+        nextReminder: 0,
+        remindEnabled: false
+      },
+      vaccineForm: {
+        name: '',
+        type: '',
+        brand: '',
+        product: '',
+        vaccinatedAt: 0,
         nextReminder: 0,
         remindEnabled: false
       }
@@ -441,14 +461,134 @@ export default {
       });
     },
     showVaccineForm() {
+      this.vaccineForm = {
+        name: '',
+        type: '',
+        brand: '',
+        product: '',
+        vaccinatedAt: Date.now(),
+        nextReminder: 0,
+        remindEnabled: false
+      };
       uni.showModal({
         title: '添加疫苗记录',
         editable: true,
-        placeholderText: '请输入疫苗名称/类型',
+        placeholderText: '请输入疫苗名称（如：猫三联）',
         success: (res) => {
           if (res.confirm && res.content) {
-            // TODO: 调用 vaccine-record 云函数
-            uni.showToast({ title: '添加功能开发中', icon: 'none' });
+            this.vaccineForm.name = res.content;
+            this.showVaccineTypeSelect();
+          }
+        }
+      });
+    },
+    showVaccineTypeSelect() {
+      uni.showActionSheet({
+        itemList: ['猫三联', '狗三联', '狂犬疫苗', '其他'],
+        success: (res) => {
+          const types = ['猫三联', '狗三联', '狂犬疫苗', '其他'];
+          this.vaccineForm.type = types[res.tapIndex];
+          uni.showModal({
+            title: '输入品牌/型号',
+            editable: true,
+            placeholderText: '请输入品牌或型号',
+            success: (res) => {
+              if (res.confirm && res.content) {
+                const parts = res.content.split(' ');
+                this.vaccineForm.brand = parts[0] || '';
+                this.vaccineForm.product = parts[1] || '';
+                this.showVaccineDateSelect();
+              }
+            }
+          });
+        }
+      });
+    },
+    showVaccineDateSelect() {
+      uni.showModal({
+        title: '选择接种日期',
+        editable: true,
+        placeholderText: '请输入日期（YYYY-MM-DD）或留空使用今天',
+        success: (res) => {
+          if (res.confirm) {
+            if (res.content) {
+              this.vaccineForm.vaccinatedAt = new Date(res.content).getTime();
+            }
+            this.showVaccineReminder();
+          }
+        }
+      });
+    },
+    showVaccineReminder() {
+      uni.showModal({
+        title: '设置下次提醒',
+        content: '是否需要设置下次疫苗接种提醒？',
+        success: (res) => {
+          if (res.confirm) {
+            this.vaccineForm.remindEnabled = true;
+            // 默认 1 年后
+            this.vaccineForm.nextReminder = Date.now() + 365 * 24 * 60 * 60 * 1000;
+            this.saveVaccineRecord();
+          } else {
+            this.vaccineForm.remindEnabled = false;
+            this.saveVaccineRecord();
+          }
+        }
+      });
+    },
+    async saveVaccineRecord() {
+      try {
+        const res = await uniCloud.callFunction({
+          name: 'vaccine-record',
+          data: {
+            action: 'create',
+            petId: this.petId,
+            name: this.vaccineForm.name,
+            type: this.vaccineForm.type,
+            brand: this.vaccineForm.brand,
+            product: this.vaccineForm.product,
+            vaccinatedAt: this.vaccineForm.vaccinatedAt,
+            nextReminder: this.vaccineForm.nextReminder,
+            remindEnabled: this.vaccineForm.remindEnabled
+          }
+        });
+        
+        if (res.result.code === 201) {
+          uni.showToast({ title: '添加成功', icon: 'success' });
+          this.loadVaccineRecords();
+        } else {
+          uni.showToast({ title: res.result.message, icon: 'none' });
+        }
+      } catch (e) {
+        console.error('保存疫苗记录失败:', e);
+        uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
+      }
+    },
+    async deleteVaccineRecord(recordId) {
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除这条疫苗记录吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              const delRes = await uniCloud.callFunction({
+                name: 'vaccine-record',
+                data: {
+                  action: 'delete',
+                  recordId: recordId
+                }
+              });
+              
+              if (delRes.result.code === 200) {
+                uni.showToast({ title: '删除成功', icon: 'success' });
+                this.loadVaccineRecords();
+              } else {
+                uni.showToast({ title: delRes.result.message, icon: 'none' });
+              }
+            } catch (e) {
+              console.error('删除记录失败:', e);
+              uni.showToast({ title: '删除失败，请稍后重试', icon: 'none' });
+            }
           }
         }
       });
