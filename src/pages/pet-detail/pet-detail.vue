@@ -178,6 +178,13 @@ export default {
       this.petInfo.name = options.name;
     }
   },
+  onShow() {
+    // 每次显示页面时重新加载数据（防止编辑后不更新）
+    if (this.petId) {
+      this.loadPetDetail();
+      this.loadWeightRecords();
+    }
+  },
   methods: {
     async loadPetDetail() {
       if (!this.petId) return;
