@@ -1,0 +1,23 @@
+{
+  "bsonType": "object",
+  "required": ["petId", "symptom", "recordedAt"],
+  "permission": {
+    "read": "auth.user_id in (SELECT _id FROM users WHERE familyId == (SELECT familyId FROM pets WHERE _id == doc.petId))",
+    "create": true,
+    "update": true,
+    "delete": true
+  },
+  "properties": {
+    "_id": { "description": "ID，系统自动生成" },
+    "petId": { "bsonType": "string", "description": "宠物 ID" },
+    "symptom": { "bsonType": "string", "description": "症状" },
+    "observation": { "bsonType": "string", "description": "观察记录" },
+    "status": { "bsonType": "string", "description": "状态", "enum": ["observing", "treatment", "recovered"] },
+    "recordedAt": { "bsonType": "timestamp", "description": "记录时间" },
+    "attachments": {
+      "bsonType": "array",
+      "description": "附件 URL 数组",
+      "items": { "bsonType": "string" }
+    }
+  }
+}

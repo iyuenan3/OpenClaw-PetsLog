@@ -1,0 +1,21 @@
+{
+  "bsonType": "object",
+  "required": ["petId", "name", "vaccinatedAt"],
+  "permission": {
+    "read": "auth.user_id in (SELECT _id FROM users WHERE familyId == (SELECT familyId FROM pets WHERE _id == doc.petId))",
+    "create": true,
+    "update": true,
+    "delete": true
+  },
+  "properties": {
+    "_id": { "description": "ID，系统自动生成" },
+    "petId": { "bsonType": "string", "description": "宠物 ID" },
+    "name": { "bsonType": "string", "description": "疫苗名称" },
+    "type": { "bsonType": "string", "description": "疫苗类型" },
+    "brand": { "bsonType": "string", "description": "品牌" },
+    "product": { "bsonType": "string", "description": "产品型号" },
+    "vaccinatedAt": { "bsonType": "timestamp", "description": "接种日期" },
+    "nextReminder": { "bsonType": "timestamp", "description": "下次提醒日期" },
+    "remindEnabled": { "bsonType": "bool", "description": "是否启用提醒" }
+  }
+}

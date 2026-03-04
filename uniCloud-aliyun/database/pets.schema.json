@@ -1,0 +1,27 @@
+{
+  "bsonType": "object",
+  "required": ["familyId", "name", "species"],
+  "permission": {
+    "read": "auth.user_id in (SELECT _id FROM users WHERE familyId == doc.familyId)",
+    "create": "auth.user_id in (SELECT _id FROM users WHERE familyId == doc.familyId)",
+    "update": "auth.user_id in (SELECT _id FROM users WHERE familyId == doc.familyId)",
+    "delete": "auth.user_id in (SELECT _id FROM users WHERE familyId == doc.familyId)"
+  },
+  "properties": {
+    "_id": { "description": "ID，系统自动生成" },
+    "familyId": { "bsonType": "string", "description": "家庭 ID" },
+    "name": { "bsonType": "string", "description": "宠物名字" },
+    "species": { "bsonType": "string", "description": "物种", "enum": ["cat", "dog"] },
+    "breed": { "bsonType": "string", "description": "品种" },
+    "gender": { "bsonType": "string", "description": "性别", "enum": ["male", "female", "unknown"] },
+    "birthday": { "bsonType": "timestamp", "description": "出生日期" },
+    "neutered": { "bsonType": "bool", "description": "是否绝育" },
+    "neuterDate": { "bsonType": "timestamp", "description": "绝育日期" },
+    "neuterHospital": { "bsonType": "string", "description": "手术医院" },
+    "color": { "bsonType": "string", "description": "毛色" },
+    "avatar": { "bsonType": "string", "description": "头像 URL" },
+    "notes": { "bsonType": "string", "description": "备注" },
+    "createdAt": { "bsonType": "timestamp", "description": "创建时间" },
+    "updatedAt": { "bsonType": "timestamp", "description": "更新时间" }
+  }
+}

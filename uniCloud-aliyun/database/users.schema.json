@@ -1,0 +1,17 @@
+{
+  "bsonType": "object",
+  "required": ["username", "passwordHash", "familyId"],
+  "permission": {
+    "read": "auth.user_id == doc._id",
+    "create": true,
+    "update": "auth.user_id == doc._id",
+    "delete": "auth.user_id == doc._id"
+  },
+  "properties": {
+    "_id": { "description": "ID，系统自动生成" },
+    "username": { "bsonType": "string", "description": "用户名" },
+    "passwordHash": { "bsonType": "string", "description": "密码哈希" },
+    "familyId": { "bsonType": "string", "description": "家庭 ID" },
+    "createdAt": { "bsonType": "timestamp", "description": "创建时间" }
+  }
+}

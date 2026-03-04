@@ -1,0 +1,17 @@
+{
+  "bsonType": "object",
+  "required": ["petId", "weight"],
+  "permission": {
+    "read": "auth.user_id in (SELECT _id FROM users WHERE familyId == (SELECT familyId FROM pets WHERE _id == doc.petId))",
+    "create": true,
+    "update": true,
+    "delete": true
+  },
+  "properties": {
+    "_id": { "description": "ID，系统自动生成" },
+    "petId": { "bsonType": "string", "description": "宠物 ID" },
+    "weight": { "bsonType": "double", "description": "体重 (kg)" },
+    "recordedAt": { "bsonType": "timestamp", "description": "记录时间" },
+    "note": { "bsonType": "string", "description": "备注" }
+  }
+}
