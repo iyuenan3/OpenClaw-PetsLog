@@ -174,6 +174,10 @@ export default {
     font-size: 16px;
     box-sizing: border-box;
     background-color: #fff;
+    position: relative;
+    z-index: 10;
+    outline: none;
+    -webkit-appearance: none;
   }
 }
 
