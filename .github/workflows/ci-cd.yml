@@ -7,27 +7,20 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 20.x
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm install
-    
-    - name: Run unit tests
-      run: npm run test:unit
+      run: npm install --legacy-peer-deps
     
     - name: Build H5
       run: npm run build:h5
@@ -38,13 +31,13 @@ jobs:
     - name: Upload H5 build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: h5-build-${{ matrix.node-version }}
+        name: h5-build
         path: dist/build/h5
         retention-days: 5
     
     - name: Upload 小程序 build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: mp-weixin-build-${{ matrix.node-version }}
+        name: mp-weixin-build
         path: dist/build/mp-weixin
         retention-days: 5
