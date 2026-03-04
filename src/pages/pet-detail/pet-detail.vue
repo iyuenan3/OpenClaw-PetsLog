@@ -7,6 +7,7 @@
         <text class="breed">{{ petInfo.breed || '未知品种' }}</text>
         <text class="age">{{ petInfo.age || '' }}</text>
       </view>
+      <view class="edit-btn" @click="editPet">✏️</view>
     </view>
 
     <scroll-view scroll-x class="tab-scroll">
@@ -461,6 +462,11 @@ export default {
         deworming: '驱虫记录'
       };
       return names[tab] || '';
+    },
+    editPet() {
+      uni.navigateTo({
+        url: `/pages/edit-pet/edit-pet?petId=${this.petId}`
+      });
     }
   }
 }
@@ -488,6 +494,7 @@ export default {
   }
   
   .info {
+    flex: 1;
     display: flex;
     flex-direction: column;
     
@@ -502,6 +509,12 @@ export default {
       color: rgba(255, 255, 255, 0.8);
       margin-top: 5px;
     }
+  }
+  
+  .edit-btn {
+    font-size: 24px;
+    padding: 10px;
+    opacity: 0.8;
   }
 }
 

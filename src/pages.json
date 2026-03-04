@@ -36,6 +36,12 @@
 			"style": {
 				"navigationBarTitleText": "提醒设置"
 			}
+		},
+		{
+			"path": "pages/edit-pet/edit-pet",
+			"style": {
+				"navigationBarTitleText": "编辑宠物"
+			}
 		}
 	],
 	"globalStyle": {
