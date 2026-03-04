@@ -24,6 +24,12 @@
 			"style": {
 				"navigationBarTitleText": "记录管理"
 			}
+		},
+		{
+			"path": "pages/add-pet/add-pet",
+			"style": {
+				"navigationBarTitleText": "添加宠物"
+			}
 		}
 	],
 	"globalStyle": {

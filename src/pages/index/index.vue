@@ -81,16 +81,8 @@ export default {
       }
     },
     addPet() {
-      uni.showModal({
-        title: '添加宠物',
-        editable: true,
-        placeholderText: '请输入宠物名字',
-        success: (res) => {
-          if (res.confirm && res.content) {
-            // TODO: 调用 pet-create 云函数
-            uni.showToast({ title: '添加功能开发中', icon: 'none' });
-          }
-        }
+      uni.navigateTo({
+        url: '/pages/add-pet/add-pet'
       });
     },
     goToDetail(pet) {
