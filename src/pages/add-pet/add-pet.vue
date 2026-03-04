@@ -58,8 +58,14 @@
 
       <view class="form-group">
         <text class="label">出生日期</text>
-        <picker mode="date" :value="form.birthdayStr" @change="onBirthdayChange">
-          <view class="picker">
+        <picker 
+          mode="date" 
+          :value="form.birthdayStr" 
+          @change="onBirthdayChange"
+          start="2010-01-01"
+          :end="new Date().toISOString().split('T')[0]"
+        >
+          <view class="picker-input">
             <text>{{ form.birthdayStr || '请选择日期' }}</text>
           </view>
         </picker>

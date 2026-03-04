@@ -180,22 +180,49 @@ export default {
   },
   methods: {
     async loadPetDetail() {
+      if (!this.petId) return;
+      
       try {
-        // TODO: 调用 pet-detail 云函数
-        this.petInfo = {
-          name: '小葵',
-          breed: '西伯利亚猫',
-          age: '6 岁 10 个月',
-          gender: 'female',
-          color: '金色',
-          neutered: true,
-          neuterDate: Date.now() - 365 * 24 * 60 * 60 * 1000,
-          notes: '焦虑性舔毛',
-          avatar: ''
-        };
+        // 从 pet-list 获取宠物详情（因为没有单独的 pet-detail 云函数）
+        const userStr = uni.getStorageSync('user');
+        const user = JSON.parse(userStr);
+        
+        const res = await uniCloud.callFunction({
+          name: 'pet-list',
+          data: {
+            familyId: user.familyId
+          }
+        });
+        
+        if (res.result.code === 200) {
+          const pets = res.result.data.pets || [];
+          const pet = pets.find(p => p._id === this.petId);
+          
+          if (pet) {
+            this.petInfo = {
+              ...pet,
+              age: this.calculateAge(pet.birthday)
+            };
+          }
+        }
       } catch (e) {
         console.error('加载宠物详情失败:', e);
       }
+    },
+    calculateAge(birthday) {
+      if (!birthday) return '';
+      const birthDate = new Date(birthday);
+      const now = new Date();
+      const years = now.getFullYear() - birthDate.getFullYear();
+      const months = now.getMonth() - birthDate.getMonth();
+      let ageText = '';
+      if (years > 0) {
+        ageText += years + '岁';
+      }
+      if (months > 0 || years === 0) {
+        ageText += months + '个月';
+      }
+      return ageText;
     },
     async loadWeightRecords() {
       if (!this.petId) return;
