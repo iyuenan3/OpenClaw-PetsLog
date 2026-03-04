@@ -43,6 +43,23 @@
 
 ---
 
+## [1.0.0-alpha.5] - 2026-03-04
+
+### Changed - 所有页面原生组件化
+
+#### 变更
+- index 页面：移除 u-button/u-loading，使用原生 button 和 CSS 动画
+- pet-detail 页面：移除 u-button，使用原生组件
+- records 页面：移除所有 uview-plus 组件
+
+#### 改进
+- 统一使用 uni-app 内置组件
+- 添加可爱的空状态 emoji（🐾、🚧）
+- 添加 CSS 加载动画（⏳ 旋转）
+- 全平台兼容性更好
+
+---
+
 ---
 
 ## [1.0.0-alpha.3] - 2026-03-04
