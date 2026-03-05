@@ -4,6 +4,8 @@ const { test, expect } = require('@playwright/test');
 test.describe('驱虫记录功能测试', () => {
   test.beforeEach(async ({ page }) => {
     // 认证状态已从 storageState 加载，直接访问首页
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/index/index');
     // 等待页面加载完成
     await page.waitForTimeout(1000);
@@ -76,6 +78,8 @@ test.describe('驱虫记录功能测试', () => {
 test.describe('疫苗记录功能测试', () => {
   test.beforeEach(async ({ page }) => {
     // 认证状态已从 storageState 加载，直接访问首页
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/index/index');
     // 等待页面加载完成
     await page.waitForTimeout(1000);
@@ -152,6 +156,8 @@ test.describe('疫苗记录功能测试', () => {
 test.describe('粮食记录功能测试', () => {
   test.beforeEach(async ({ page }) => {
     // 认证状态已从 storageState 加载，直接访问首页
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/index/index');
     // 等待页面加载完成
     await page.waitForTimeout(1000);
@@ -227,6 +233,8 @@ test.describe('粮食记录功能测试', () => {
 test.describe('健康记录功能测试', () => {
   test.beforeEach(async ({ page }) => {
     // 认证状态已从 storageState 加载，直接访问首页
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/index/index');
     // 等待页面加载完成
     await page.waitForTimeout(1000);
@@ -339,12 +347,22 @@ test.describe('健康记录功能测试', () => {
 
 test.describe('数据导出功能测试', () => {
   test('导出页面应该可以访问', async ({ page }) => {
+    // 注意：导出页面需要在 pages.json 中注册
+    // 如果测试失败，请检查是否已添加到 pages.json
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/export/export');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
     await expect(page.locator('.title:has-text("📤 数据导出")')).toBeVisible();
   });
 
   test('导出范围应该可以选择', async ({ page }) => {
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/export/export');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
     
     // 默认是全部宠物
     await expect(page.locator('.radio-item:has-text("全部宠物")')).toHaveClass(/active/);
@@ -355,6 +373,8 @@ test.describe('数据导出功能测试', () => {
   });
 
   test('导出格式应该可以选择', async ({ page }) => {
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/export/export');
     
     // 默认是 JSON
@@ -366,6 +386,8 @@ test.describe('数据导出功能测试', () => {
   });
 
   test('导出内容应该可以选择', async ({ page }) => {
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/export/export');
     
     // 默认全选
@@ -378,6 +400,8 @@ test.describe('数据导出功能测试', () => {
   });
 
   test('导出按钮应该存在且可点击', async ({ page }) => {
+    a page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
     await page.goto('/pages/export/export');
     
     const exportBtn = page.locator('.btn-export');
