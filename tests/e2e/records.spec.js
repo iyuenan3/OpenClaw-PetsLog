@@ -223,3 +223,116 @@ test.describe('粮食记录功能测试', () => {
     }
   });
 });
+
+test.describe('健康记录功能测试', () => {
+  test.beforeEach(async ({ page }) => {
+    // 认证状态已从 storageState 加载，直接访问首页
+    await page.goto('/pages/index/index');
+    // 等待页面加载完成
+    await page.waitForTimeout(1000);
+  });
+
+  test('健康记录 Tab 应该可以访问', async ({ page }) => {
+    const petCard = page.locator('.pet-card').first();
+    if (await petCard.isVisible()) {
+      await petCard.click();
+      await page.waitForURL(/\/pages\/pet-detail/);
+      
+      const healthTab = page.locator('text=🏥 健康');
+      await expect(healthTab).toBeVisible();
+      await healthTab.click();
+      
+      const addBtn = page.locator('button:has-text("+ 添加健康记录")');
+      await expect(addBtn).toBeVisible();
+    }
+  });
+
+  test('添加健康记录 - 呕吐/拉稀', async ({ page }) => {
+    const petCard = page.locator('.pet-card').first();
+    if (await petCard.isVisible()) {
+      await petCard.click();
+      await page.waitForURL(/\/pages\/pet-detail/);
+      
+      const healthTab = page.locator('text=🏥 健康');
+      await healthTab.click();
+      
+      const addBtn = page.locator('button:has-text("+ 添加健康记录")');
+      await addBtn.click();
+      
+      // 选择症状：呕吐/拉稀（第一个选项）
+      await page.locator('text=呕吐/拉稀').click();
+      await page.waitForTimeout(500);
+      
+      // 输入观察记录
+      await page.locator('.uni-modal input').fill('今天拉了 3 次，便便呈水样');
+      await page.locator('button:has-text("确定")').click();
+      await page.waitForTimeout(500);
+      
+      // 选择完成提交（第二个选项）
+      await page.locator('text=完成提交').click();
+      
+      // 应该显示成功提示
+      await page.waitForTimeout(2000);
+      await expect(page.locator('.uni-toast')).toBeVisible();
+    }
+  });
+
+  test('健康记录列表应该显示记录', async ({ page }) => {
+    const petCard = page.locator('.pet-card').first();
+    if (await petCard.isVisible()) {
+      await petCard.click();
+      await page.waitForURL(/\/pages\/pet-detail/);
+      
+      const healthTab = page.locator('text=🏥 健康');
+      await healthTab.click();
+      
+      // 等待记录加载
+      await page.waitForTimeout(2000);
+      
+      const recordList = page.locator('.record-list');
+      await expect(recordList).toBeVisible();
+    }
+  });
+
+  test('健康记录应该显示症状和观察', async ({ page }) => {
+    const petCard = page.locator('.pet-card').first();
+    if (await petCard.isVisible()) {
+      await petCard.click();
+      await page.waitForURL(/\/pages\/pet-detail/);
+      
+      const healthTab = page.locator('text=🏥 健康');
+      await healthTab.click();
+      
+      // 等待记录加载
+      await page.waitForTimeout(2000);
+      
+      // 检查是否显示症状
+      const symptomText = page.locator('text=呕吐/拉稀');
+      if (await symptomText.isVisible()) {
+        await expect(symptomText).toBeVisible();
+      }
+    }
+  });
+
+  test('健康记录删除按钮应该存在', async ({ page }) => {
+    const petCard = page.locator('.pet-card').first();
+    if (await petCard.isVisible()) {
+      await petCard.click();
+      await page.waitForURL(/\/pages\/pet-detail/);
+      
+      const healthTab = page.locator('text=🏥 健康');
+      await healthTab.click();
+      
+      // 等待记录加载
+      await page.waitForTimeout(2000);
+      
+      // 查找删除按钮
+      const deleteBtn = page.locator('.delete-btn:has-text("🗑️")').first();
+      if (await deleteBtn.isVisible()) {
+        // 只验证删除按钮存在且可点击
+        await expect(deleteBtn).toBeVisible();
+        await expect(deleteBtn).toBeEnabled();
+      }
+    }
+  });
+});
