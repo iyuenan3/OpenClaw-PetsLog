@@ -874,7 +874,10 @@ export default {
                 uni.showToast({ title: '请输入有效的体重', icon: 'none' });
                 resolve(null);
               } else {
-                resolve(weight);
+                // 继续询问备注
+                this.showWeightNote().then((note) => {
+                  resolve({ weight, note });
+                });
               }
             } else {
               resolve(null);
@@ -883,14 +886,33 @@ export default {
         });
       });
     },
-    async saveWeightRecord(weight) {
+    showWeightNote() {
+      return new Promise((resolve) => {
+        uni.showModal({
+          title: '添加备注（可选）',
+          editable: true,
+          placeholderText: '例如：刚吃完早饭、精神状态好等',
+          confirmText: '保存',
+          cancelText: '跳过',
+          success: (res) => {
+            if (res.confirm) {
+              resolve(res.content || '');
+            } else {
+              resolve('');
+            }
+          }
+        });
+      });
+    },
+    async saveWeightRecord(data) {
       try {
         const res = await uniCloud.callFunction({
           name: 'weight-record',
           data: {
             action: 'create',
             petId: this.petId,
-            weight: weight,
+            weight: data.weight,
+            note: data.note || '',
             recordedAt: Date.now()
           }
         });
