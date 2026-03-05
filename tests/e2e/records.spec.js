@@ -336,3 +336,52 @@ test.describe('健康记录功能测试', () => {
     }
   });
 });
+
+test.describe('数据导出功能测试', () => {
+  test('导出页面应该可以访问', async ({ page }) => {
+    await page.goto('/pages/export/export');
+    await expect(page.locator('.title:has-text("📤 数据导出")')).toBeVisible();
+  });
+
+  test('导出范围应该可以选择', async ({ page }) => {
+    await page.goto('/pages/export/export');
+    
+    // 默认是全部宠物
+    await expect(page.locator('.radio-item:has-text("全部宠物")')).toHaveClass(/active/);
+    
+    // 点击单只宠物
+    await page.locator('.radio-item:has-text("单只宠物")').click();
+    await expect(page.locator('.radio-item:has-text("单只宠物")')).toHaveClass(/active/);
+  });
+
+  test('导出格式应该可以选择', async ({ page }) => {
+    await page.goto('/pages/export/export');
+    
+    // 默认是 JSON
+    await expect(page.locator('.radio-item:has-text("JSON")')).toHaveClass(/active/);
+    
+    // 点击 CSV
+    await page.locator('.radio-item:has-text("CSV")').click();
+    await expect(page.locator('.radio-item:has-text("CSV")')).toHaveClass(/active/);
+  });
+
+  test('导出内容应该可以选择', async ({ page }) => {
+    await page.goto('/pages/export/export');
+    
+    // 默认全选
+    await expect(page.locator('.checkbox-item')).toHaveCount(6);
+    
+    // 点击取消一个
+    const firstCheckbox = page.locator('.checkbox-item').first();
+    await firstCheckbox.click();
+    await expect(firstCheckbox.locator('.checkbox-icon')).toHaveText('⬜');
+  });
+
+  test('导出按钮应该存在且可点击', async ({ page }) => {
+    await page.goto('/pages/export/export');
+    
+    const exportBtn = page.locator('.btn-export');
+    await expect(exportBtn).toBeVisible();
+    await expect(exportBtn).toBeEnabled();
+  });
+});
