@@ -151,13 +151,29 @@ export default {
       try {
         const res = await uni.chooseImage({
           count: 1,
+          sizeType: ['compressed'],
           sourceType: ['album', 'camera']
         });
         
-        this.form.avatar = res.tempFilePaths[0];
+        const tempFilePath = res.tempFilePaths[0];
+        this.form.avatar = tempFilePath;
+        
+        // 显示上传进度提示
+        uni.showLoading({ title: '上传中...' });
+        
+        // 立即上传
+        const uploadRes = await uniCloud.uploadFile({
+          cloudPath: `avatars/${this.petId}_${Date.now()}.jpg`,
+          filePath: tempFilePath
+        });
+        
+        uni.hideLoading();
+        this.form.avatar = uploadRes.fileID;
+        uni.showToast({ title: '头像上传成功', icon: 'success' });
       } catch (e) {
-        console.error('选择头像失败:', e);
-        uni.showToast({ title: '选择失败，请重试', icon: 'none' });
+        console.error('上传头像失败:', e);
+        uni.hideLoading();
+        uni.showToast({ title: '上传失败，请重试', icon: 'none' });
       }
     },
     onBirthdayChange(e) {

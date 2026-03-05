@@ -5,6 +5,18 @@
     </view>
 
     <view class="form">
+      <!-- 头像上传 -->
+      <view class="avatar-section">
+        <view class="avatar-preview" :style="{ backgroundImage: avatarUrl ? `url(${avatarUrl})` : 'none' }" @click="chooseAvatar">
+          <text class="avatar-placeholder" v-if="!avatarUrl">📷</text>
+          <text class="avatar-text" v-if="!avatarUrl">点击上传头像</text>
+          <text class="avatar-change" v-if="avatarUrl">✏️ 更换</text>
+        </view>
+        <view class="avatar-progress" v-if="uploading">
+          <text class="progress-text">上传中 {{ uploadProgress }}%</text>
+        </view>
+      </view>
+
       <view class="form-group">
         <text class="label">名字 *</text>
         <input 
@@ -116,8 +128,12 @@ export default {
         birthday: 0,
         birthdayStr: '',
         color: '',
-        notes: ''
+        notes: '',
+        avatar: ''
       },
+      avatarUrl: '',
+      uploading: false,
+      uploadProgress: 0,
       submitting: false
     }
   },
@@ -125,6 +141,53 @@ export default {
     onBirthdayChange(e) {
       this.form.birthdayStr = e.detail.value;
       this.form.birthday = new Date(e.detail.value).getTime();
+    },
+    async chooseAvatar() {
+      try {
+        const chooseRes = await uni.chooseImage({
+          count: 1,
+          sizeType: ['compressed'],
+          sourceType: ['album', 'camera']
+        });
+        
+        const tempFilePath = chooseRes.tempFilePaths[0];
+        this.avatarUrl = tempFilePath;
+        
+        // 上传头像
+        await this.uploadAvatar(tempFilePath);
+      } catch (e) {
+        console.error('选择头像失败:', e);
+        uni.showToast({ title: '选择失败，请重试', icon: 'none' });
+      }
+    },
+    async uploadAvatar(filePath) {
+      this.uploading = true;
+      this.uploadProgress = 0;
+      
+      try {
+        const userStr = uni.getStorageSync('user');
+        const user = JSON.parse(userStr);
+        const fileName = `avatars/${user.familyId}/${Date.now()}.jpg`;
+        
+        const uploadRes = await uniCloud.uploadFile({
+          cloudPath: fileName,
+          filePath: filePath,
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            this.uploadProgress = percentCompleted;
+          }
+        });
+        
+        this.form.avatar = uploadRes.fileID;
+        uni.showToast({ title: '头像上传成功', icon: 'success' });
+      } catch (e) {
+        console.error('上传头像失败:', e);
+        uni.showToast({ title: '上传失败，请重试', icon: 'none' });
+        this.avatarUrl = '';
+        this.form.avatar = '';
+      } finally {
+        this.uploading = false;
+      }
     },
     async handleSubmit() {
       if (!this.form.name) {
@@ -197,6 +260,65 @@ export default {
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
+  
+  .avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 20px 0;
+    
+    .avatar-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 60px;
+      background: #f5f5f5;
+      border: 3px solid #667eea;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      
+      .avatar-placeholder {
+        font-size: 40px;
+        margin-bottom: 5px;
+      }
+      
+      .avatar-text {
+        font-size: 12px;
+        color: #999;
+      }
+      
+      .avatar-change {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+    }
+    
+    .avatar-progress {
+      margin-top: 15px;
+      
+      .progress-text {
+        font-size: 14px;
+        color: #667eea;
+        font-weight: bold;
+      }
+    }
+  }
 }
 
 .form-group {
