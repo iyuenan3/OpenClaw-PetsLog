@@ -8,7 +8,7 @@ setup('authenticate as test user', async ({ page }) => {
   // 访问登录页面
   await page.goto('/');
   
-  // 等待页面加载完成，使用更可靠的等待方式
+  // 等待页面加载完成
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000);
   
@@ -16,15 +16,26 @@ setup('authenticate as test user', async ({ page }) => {
   await page.screenshot({ path: 'test-results/debug-login-page.png' });
   console.log('📸 已截图：test-results/debug-login-page.png');
   
+  // 获取页面 HTML 用于调试
+  const html = await page.content();
+  console.log('📄 页面 HTML 长度:', html.length);
+  
   // 尝试直接登录（如果用户已存在）
-  // 使用更稳定的选择器：通过 id 或 label 定位
-  const usernameInput = page.locator('#username-input').or(page.locator('input[type="text"]')).first();
-  const passwordInput = page.locator('#password-input').or(page.locator('input[type="password"]')).first();
-  const loginBtn = page.locator('button:has-text("登录")').or(page.locator('button').nth(0));
+  // uni-app 编译后 input 在 uni-input 内部，需要找到真实的 input 元素
+  // 使用 CSS 选择器找到 uni-input 内部的 input
+  const usernameInput = page.locator('uni-input#username-input input').or(page.locator('#username-input input')).first();
+  const passwordInput = page.locator('uni-input#password-input input').or(page.locator('#password-input input')).first();
+  const loginBtn = page.locator('button:has-text("登录")');
   
   console.log('⏳ 尝试填写用户名...');
-  await usernameInput.fill('testuser');
-  await passwordInput.fill('Test123456');
+  
+  // 先点击输入框获得焦点，然后使用 type 而不是 fill
+  await usernameInput.click();
+  await page.keyboard.type('testuser');
+  
+  await passwordInput.click();
+  await page.keyboard.type('Test123456');
+  
   await loginBtn.click();
   
   // 等待登录结果
@@ -47,13 +58,16 @@ setup('authenticate as test user', async ({ page }) => {
   await page.waitForTimeout(1000);
   
   // 点击注册按钮
-  const registerBtn = page.locator('button:has-text("注册")').or(page.locator('button').nth(1));
+  const registerBtn = page.locator('button:has-text("注册")');
   await registerBtn.click();
   await page.waitForTimeout(1000);
   
   // 填写注册信息
-  await usernameInput.fill('testuser');
-  await passwordInput.fill('Test123456');
+  await usernameInput.click();
+  await page.keyboard.type('testuser');
+  
+  await passwordInput.click();
+  await page.keyboard.type('Test123456');
   
   // 注册只需要用户名和密码
   await registerBtn.click();
@@ -74,8 +88,12 @@ setup('authenticate as test user', async ({ page }) => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
     
-    await usernameInput.fill('testuser');
-    await passwordInput.fill('Test123456');
+    await usernameInput.click();
+    await page.keyboard.type('testuser');
+    
+    await passwordInput.click();
+    await page.keyboard.type('Test123456');
+    
     await loginBtn.click();
     await page.waitForTimeout(3000);
   }
