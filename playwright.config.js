@@ -5,7 +5,7 @@ module.exports = defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,  // CI 只重试 1 次，减少等待时间
+  retries: 0,  // 禁用重试，加快 CI 速度
   workers: process.env.CI ? 1 : undefined,
   timeout: 15000,  // 全局超时 15 秒
   reporter: [
