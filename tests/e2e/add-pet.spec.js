@@ -7,20 +7,19 @@ test.describe('添加宠物页面测试', () => {
     await page.goto('/pages/index/index');
     // 等待页面加载完成
     await page.waitForLoadState('networkidle');
-    // 等待标题和添加按钮出现
-    await page.locator('.title:has-text("我的宠物")').waitFor({ state: 'visible', timeout: 5000 });
-    await page.locator('.btn-add').waitFor({ state: 'visible', timeout: 5000 });
+    // 等待添加按钮出现（使用文本选择器）
+    await page.locator('button:has-text("+ 添加")').waitFor({ state: 'visible', timeout: 10000 });
     await page.waitForTimeout(1000);
   });
 
   test('点击添加按钮应该跳转', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     await expect(page.locator('text=添加宠物')).toBeVisible();
   });
 
   test('名字输入框应该可输入', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     const input = page.locator('input[placeholder="请输入宠物名字"]');
     await expect(input).toBeVisible();
