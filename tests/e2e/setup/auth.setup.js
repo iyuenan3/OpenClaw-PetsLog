@@ -23,19 +23,25 @@ setup('authenticate as test user', async ({ page }) => {
   // 尝试直接登录（如果用户已存在）
   // uni-app 编译后 input 在 uni-input 内部，需要找到真实的 input 元素
   // 使用 CSS 选择器找到 uni-input 内部的 input
-  const usernameInput = page.locator('uni-input#username-input input').or(page.locator('#username-input input')).first();
-  const passwordInput = page.locator('uni-input#password-input input').or(page.locator('#password-input input')).first();
-  const loginBtn = page.locator('button:has-text("登录")');
+  const usernameInput = page.locator('uni-input#username-input input').or(page.locator('#username-input input')).or(page.locator('input[type="text"]')).first();
+  const passwordInput = page.locator('uni-input#password-input input').or(page.locator('#password-input input')).or(page.locator('input[type="password"]')).first();
+  
+  // 登录按钮使用 CSS class 选择器（更可靠）
+  const loginBtn = page.locator('.btn-primary').or(page.locator('button:has-text("登录")')).first();
+  const registerBtn = page.locator('.btn-info').or(page.locator('button:has-text("注册")')).first();
   
   console.log('⏳ 尝试填写用户名...');
   
   // 先点击输入框获得焦点，然后使用 type 而不是 fill
   await usernameInput.click();
+  await page.waitForTimeout(500);
   await page.keyboard.type('testuser');
   
   await passwordInput.click();
+  await page.waitForTimeout(500);
   await page.keyboard.type('Test123456');
   
+  console.log('⏳ 点击登录按钮...');
   await loginBtn.click();
   
   // 等待登录结果
@@ -58,18 +64,20 @@ setup('authenticate as test user', async ({ page }) => {
   await page.waitForTimeout(1000);
   
   // 点击注册按钮
-  const registerBtn = page.locator('button:has-text("注册")');
   await registerBtn.click();
   await page.waitForTimeout(1000);
   
   // 填写注册信息
   await usernameInput.click();
+  await page.waitForTimeout(500);
   await page.keyboard.type('testuser');
   
   await passwordInput.click();
+  await page.waitForTimeout(500);
   await page.keyboard.type('Test123456');
   
   // 注册只需要用户名和密码
+  console.log('⏳ 点击注册按钮...');
   await registerBtn.click();
   
   // 等待注册完成
@@ -89,11 +97,14 @@ setup('authenticate as test user', async ({ page }) => {
     await page.waitForTimeout(1000);
     
     await usernameInput.click();
+    await page.waitForTimeout(500);
     await page.keyboard.type('testuser');
     
     await passwordInput.click();
+    await page.waitForTimeout(500);
     await page.keyboard.type('Test123456');
     
+    console.log('⏳ 点击登录按钮...');
     await loginBtn.click();
     await page.waitForTimeout(3000);
   }
