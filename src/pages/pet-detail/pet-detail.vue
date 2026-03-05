@@ -713,7 +713,7 @@ export default {
         
         if (res.result.code === 201) {
           uni.showToast({ title: '添加成功', icon: 'success' });
-          // TODO: 刷新健康记录列表
+          this.loadHealthRecords();
         } else {
           uni.showToast({ title: res.result.message, icon: 'none' });
         }
@@ -721,6 +721,32 @@ export default {
         console.error('保存健康记录失败:', e);
         uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
       }
+    },
+    async deleteHealthRecord(recordId) {
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除这条健康记录吗？',
+        success: async (res) => {
+          if (res.confirm) {
+            try {
+              const res = await uniCloud.callFunction({
+                name: 'health-record',
+                data: { action: 'delete', recordId }
+              });
+              
+              if (res.result.code === 200) {
+                uni.showToast({ title: '删除成功', icon: 'success' });
+                this.loadHealthRecords();
+              } else {
+                uni.showToast({ title: res.result.message, icon: 'none' });
+              }
+            } catch (e) {
+              console.error('删除健康记录失败:', e);
+              uni.showToast({ title: '删除失败，请稍后重试', icon: 'none' });
+            }
+          }
+        }
+      });
     },
     showFoodForm() {
       this.foodForm = {
