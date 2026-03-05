@@ -7,18 +7,18 @@ test.describe('添加宠物页面测试', () => {
     await page.goto('/pages/index/index');
     // 等待页面加载完成
     await page.waitForLoadState('networkidle');
-    // 确保添加按钮可见
-    await page.locator('.btn-add').waitFor({ state: 'visible', timeout: 5000 });
+    // 确保添加按钮可见（使用文本选择器）
+    await page.locator('button:has-text("+ 添加")').waitFor({ state: 'visible', timeout: 5000 });
   });
 
   test('点击添加按钮应该跳转', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     await expect(page.locator('text=添加宠物')).toBeVisible();
   });
 
   test('名字输入框应该可输入', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     const input = page.locator('input[placeholder="请输入宠物名字"]');
     await expect(input).toBeVisible();
@@ -27,7 +27,7 @@ test.describe('添加宠物页面测试', () => {
   });
 
   test('品种输入框应该可输入', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     const input = page.locator('input[placeholder="例如：英短、美短、金毛"]');
     await expect(input).toBeVisible();
@@ -36,7 +36,7 @@ test.describe('添加宠物页面测试', () => {
   });
 
   test('物种选择应该正常工作', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     const catBtn = page.locator('text=🐱 猫咪');
     await expect(catBtn).toBeVisible();
@@ -45,7 +45,7 @@ test.describe('添加宠物页面测试', () => {
   });
 
   test('性别选择应该正常工作', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     const maleBtn = page.locator('text=♂ 公');
     await expect(maleBtn).toBeVisible();
@@ -54,7 +54,7 @@ test.describe('添加宠物页面测试', () => {
   });
 
   test('毛色输入框应该可输入', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     const input = page.locator('input[placeholder="例如：金色、黑色、白色"]');
     await expect(input).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('添加宠物页面测试', () => {
   });
 
   test('备注输入框应该可输入', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     const textarea = page.locator('textarea');
     await expect(textarea).toBeVisible();
@@ -72,14 +72,14 @@ test.describe('添加宠物页面测试', () => {
   });
 
   test('空名字提交应该提示错误', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     await page.locator('button:has-text("创建宠物档案")').click();
     await expect(page.locator('.uni-toast')).toBeVisible();
   });
 
   test('取消按钮应该返回列表', async ({ page }) => {
-    await page.locator('.btn-add').click();
+    await page.locator('button:has-text("+ 添加")').click();
     await page.waitForURL(/\/pages\/add-pet\/add-pet/, { timeout: 5000 });
     await page.locator('button:has-text("取消")').click();
     await page.waitForURL(/\/pages\/index\/index/, { timeout: 5000 });
