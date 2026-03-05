@@ -25,6 +25,25 @@ jobs:
     - name: Install Playwright
       run: npx playwright install --with-deps chromium
     
+    - name: Start dev server
+      run: |
+        npm run dev:h5 > dev-server.log 2>&1 &
+        sleep 15
+        curl -s http://localhost:5173 || exit 1
+    
+    - name: Run E2E tests (32 tests)
+      run: npx playwright test --project=chromium --reporter=list
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: |
+          test-results/
+          playwright-report/
+        retention-days: 7
+    
     - name: Build H5
       run: npm run build:h5
     
