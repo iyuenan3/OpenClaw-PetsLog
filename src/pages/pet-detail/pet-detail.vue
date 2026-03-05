@@ -906,13 +906,33 @@ export default {
         uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
       }
     },
-    deletePet() {
+    async deletePet() {
       uni.showModal({
         title: '确认删除',
         content: '确定要删除这只宠物吗？相关记录也会被删除。',
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            uni.showToast({ title: '删除功能开发中', icon: 'none' });
+            try {
+              const delRes = await uniCloud.callFunction({
+                name: 'pet-delete',
+                data: {
+                  petId: this.petId
+                }
+              });
+              
+              if (delRes.result.code === 200) {
+                uni.showToast({ title: '删除成功', icon: 'success' });
+                // 返回首页
+                setTimeout(() => {
+                  uni.navigateBack();
+                }, 1500);
+              } else {
+                uni.showToast({ title: delRes.result.message, icon: 'none' });
+              }
+            } catch (e) {
+              console.error('删除宠物失败:', e);
+              uni.showToast({ title: '删除失败，请稍后重试', icon: 'none' });
+            }
           }
         }
       });

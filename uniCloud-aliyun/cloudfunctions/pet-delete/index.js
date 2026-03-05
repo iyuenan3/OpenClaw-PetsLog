@@ -14,10 +14,16 @@ exports.main = async (event, context) => {
   }
   
   const db = uniCloud.database();
-  const petsCollection = db.collection('pets');
   
   // 删除宠物
-  await petsCollection.doc(petId).remove();
+  await db.collection('pets').doc(petId).remove();
+  
+  // 删除相关记录
+  await db.collection('weight_records').where({ petId }).remove();
+  await db.collection('deworming_records').where({ petId }).remove();
+  await db.collection('vaccine_records').where({ petId }).remove();
+  await db.collection('health_records').where({ petId }).remove();
+  await db.collection('food_records').where({ petId }).remove();
   
   return {
     code: 200,
