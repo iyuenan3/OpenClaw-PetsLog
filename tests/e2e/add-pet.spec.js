@@ -7,7 +7,9 @@ test.describe('添加宠物页面测试', () => {
     await page.goto('/pages/index/index');
     // 等待页面加载完成
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    // 确保添加按钮可见
+    await page.locator('.btn-add').waitFor({ state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(500);
   });
 
   test('点击添加按钮应该跳转', async ({ page }) => {
