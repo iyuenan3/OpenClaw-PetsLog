@@ -1,0 +1,527 @@
+/**
+ * PetsLog 记录卡片样式
+ * 适用于体重/驱虫/疫苗/健康/粮食记录
+ * 更新日期：2026-03-06
+ */
+
+/* ========== 记录列表容器 ========== */
+.record-list {
+  margin-top: 16px;
+}
+
+/* ========== 记录卡片基础样式 ========== */
+.record-item {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #f1f5f9;
+}
+
+.record-item:active {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  border-color: #e2e8f0;
+}
+
+/* ========== 记录卡片头部 ========== */
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.record-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.record-icon.weight {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.record-icon.deworming {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.record-icon.vaccine {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.record-icon.health {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.record-icon.food {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.record-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.record-time {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ========== 记录内容区域 ========== */
+.record-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.record-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.record-label {
+  font-size: 13px;
+  color: #64748b;
+  min-width: 70px;
+  flex-shrink: 0;
+}
+
+.record-value {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 500;
+  flex: 1;
+}
+
+.record-value.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.record-value.success {
+  color: #43e97b;
+  font-weight: 600;
+}
+
+.record-value.warning {
+  color: #fa709a;
+  font-weight: 600;
+}
+
+.record-value.danger {
+  color: #ff0844;
+  font-weight: 600;
+}
+
+/* ========== 记录标签 ========== */
+.record-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.record-tag.internal {
+  background: rgba(67, 233, 123, 0.1);
+  color: #43e97b;
+}
+
+.record-tag.external {
+  background: rgba(79, 172, 254, 0.1);
+  color: #4facfe;
+}
+
+.record-tag.dry {
+  background: rgba(250, 112, 154, 0.1);
+  color: #fa709a;
+}
+
+.record-tag.wet {
+  background: rgba(240, 147, 251, 0.1);
+  color: #f093fb;
+}
+
+.record-tag.snack {
+  background: rgba(254, 225, 64, 0.1);
+  color: #fee140;
+}
+
+.record-tag.observing {
+  background: rgba(79, 172, 254, 0.1);
+  color: #4facfe;
+}
+
+.record-tag.treatment {
+  background: rgba(250, 112, 154, 0.1);
+  color: #fa709a;
+}
+
+.record-tag.recovered {
+  background: rgba(67, 233, 123, 0.1);
+  color: #43e97b;
+}
+
+/* ========== 记录底部操作区 ========== */
+.record-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.record-date {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.record-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.record-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: #f8fafc;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.record-action-btn:active {
+  background: #e2e8f0;
+  transform: scale(0.9);
+}
+
+.record-action-btn.delete {
+  color: #ff0844;
+  background: rgba(255, 8, 68, 0.1);
+}
+
+.record-action-btn.delete:active {
+  background: rgba(255, 8, 68, 0.2);
+}
+
+/* ========== 附件区域 ========== */
+.record-attachments {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.attachment-item {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+  position: relative;
+}
+
+.attachment-item image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attachment-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #64748b;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+/* ========== 提醒卡片 ========== */
+.reminder-card {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(240, 147, 251, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.reminder-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.reminder-card .reminder-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.reminder-card .reminder-title {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.reminder-card .reminder-date {
+  font-size: 24px;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+}
+
+.reminder-card .reminder-days {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ========== 当前粮食卡片 ========== */
+.current-food-card {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(250, 112, 154, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.current-food-card::after {
+  content: '🍖';
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  font-size: 100px;
+  opacity: 0.1;
+  transform: rotate(-15deg);
+}
+
+.current-food-card .current-food-title {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.current-food-card .current-food-brand {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.current-food-card .current-food-type {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.current-food-card .current-food-date {
+  font-size: 12px;
+  opacity: 0.8;
+  position: relative;
+  z-index: 1;
+}
+
+/* ========== 统计卡片 ========== */
+.stat-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+.stat-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .stat-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.stat-card .stat-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ========== 添加按钮 ========== */
+.add-record-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.add-record-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+}
+
+/* ========== 空状态 ========== */
+.record-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.record-empty .empty-icon {
+  font-size: 60px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.record-empty .empty-title {
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.record-empty .empty-desc {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* ========== 加载状态 ========== */
+.record-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.record-skeleton {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.record-skeleton .skeleton-header {
+  height: 40px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.record-skeleton .skeleton-line {
+  height: 16px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.record-skeleton .skeleton-line.short {
+  width: 60%;
+}
+
+/* ========== 响应式适配 ========== */
+@media (max-width: 375px) {
+  .record-item {
+    padding: 16px;
+  }
+  
+  .record-value.primary {
+    font-size: 14px;
+  }
+  
+  .reminder-card .reminder-date {
+    font-size: 20px;
+  }
+}
