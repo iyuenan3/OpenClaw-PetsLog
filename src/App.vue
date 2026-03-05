@@ -12,43 +12,91 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+@import './styles/variables.scss';
+
 /* 每个页面公共 css */
 page {
-  background-color: #f5f5f5;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: var(--font-size-md);
+  line-height: 1.5;
 }
 
 /* 通用样式 */
 .container {
-  padding: 20px;
+  padding: var(--spacing-xl);
   min-height: 100vh;
   box-sizing: border-box;
 }
 
+/* 卡片样式 */
 .card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-slow);
+  
+  &:active {
+    box-shadow: var(--shadow-lg);
+  }
 }
 
+/* 主按钮 */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  background: var(--gradient-primary);
+  color: var(--text-inverse);
   border: none;
-  border-radius: 10px;
-  padding: 12px 24px;
-  font-size: 16px;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-primary);
+  transition: all var(--transition-base);
+  
+  &:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
+/* 次按钮 */
 .btn-secondary {
-  background: #fff;
-  color: #667eea;
+  background: var(--bg-surface);
+  color: var(--text-primary);
   border: 2px solid #667eea;
-  border-radius: 10px;
-  padding: 12px 24px;
-  font-size: 16px;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-base);
+  
+  &:active {
+    background: var(--bg-secondary);
+    transform: scale(0.98);
+  }
+}
+
+/* 文本按钮 */
+.btn-text {
+  background: transparent;
+  color: #667eea;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-base);
+  
+  &:active {
+    background: rgba(102, 126, 234, 0.1);
+  }
 }
 </style>

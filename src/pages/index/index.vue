@@ -113,33 +113,42 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../../styles/variables.scss';
+
 .container {
-  padding: 20px;
+  padding: var(--spacing-xl);
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--bg-primary);
 }
 
 .header {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-2xl);
   
   .user-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding: 12px 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--gradient-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-primary);
     
     .welcome {
-      color: #fff;
-      font-size: 14px;
+      color: var(--text-inverse);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
     }
     
     .logout {
       color: rgba(255, 255, 255, 0.8);
-      font-size: 12px;
+      font-size: var(--font-size-xs);
       text-decoration: underline;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      
+      &:active {
+        opacity: 0.7;
+      }
     }
   }
   
@@ -149,18 +158,26 @@ export default {
     align-items: center;
     
     .title {
-      font-size: 24px;
-      font-weight: bold;
-      color: #333;
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-primary);
     }
     
     .btn-add {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #fff;
+      background: var(--gradient-primary);
+      color: var(--text-inverse);
       border: none;
-      border-radius: 20px;
-      padding: 8px 20px;
-      font-size: 14px;
+      border-radius: var(--radius-full);
+      padding: var(--spacing-sm) var(--spacing-lg);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      box-shadow: var(--shadow-primary);
+      transition: all var(--transition-base);
+      
+      &:active {
+        transform: scale(0.95);
+        box-shadow: var(--shadow-sm);
+      }
     }
   }
 }
@@ -169,18 +186,34 @@ export default {
   .pet-card {
     display: flex;
     align-items: center;
-    background: #fff;
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background: var(--bg-surface);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-slow);
     
-    .pet-avatar {
+    &:active {
+      transform: scale(0.98);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .avatar-wrapper {
       width: 60px;
       height: 60px;
-      border-radius: 30px;
-      background: #eee;
-      margin-right: 15px;
+      border-radius: var(--radius-full);
+      padding: 3px;
+      background: var(--gradient-primary);
+      margin-right: var(--spacing-lg);
+      flex-shrink: 0;
+      
+      .pet-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: var(--radius-full);
+        border: 2px solid var(--bg-surface);
+        object-fit: cover;
+      }
     }
     
     .pet-info {
@@ -189,41 +222,60 @@ export default {
       flex-direction: column;
       
       .pet-name {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #333;
+        font-size: var(--font-size-lg);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: var(--spacing-xs);
+        color: var(--text-primary);
       }
       
       .pet-breed {
-        font-size: 14px;
-        color: #666;
-        margin-bottom: 3px;
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-xs);
       }
       
-      .pet-age {
-        font-size: 12px;
-        color: #999;
+      .pet-meta {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        font-size: var(--font-size-xs);
+        color: var(--text-tertiary);
+        
+        .dot {
+          color: var(--text-tertiary);
+        }
       }
     }
     
-    .arrow {
-      font-size: 24px;
-      color: #ccc;
-      margin-left: 10px;
+    .more-btn {
+      font-size: var(--font-size-xl);
+      color: var(--text-tertiary);
+      padding: var(--spacing-sm);
+      margin-left: var(--spacing-md);
+      
+      &:active {
+        opacity: 0.6;
+      }
     }
   }
 }
 
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
+  padding: var(--spacing-3xl) var(--spacing-xl);
   
   .empty-emoji {
     font-size: 60px;
     display: block;
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.5;
   }
+  
+  .empty-text {
+    font-size: var(--font-size-md);
+    color: var(--text-secondary);
+  }
+}
   
   .empty-text {
     font-size: 16px;
