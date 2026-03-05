@@ -5,8 +5,9 @@ module.exports = defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,  // CI 只重试 1 次，减少等待时间
   workers: process.env.CI ? 1 : undefined,
+  timeout: 15000,  // 全局超时 15 秒
   reporter: [
     ['html', { open: 'never' }],
     ['list'],
@@ -23,7 +24,7 @@ module.exports = defineConfig({
     {
       name: 'setup',
       testMatch: /setup\/.*\.setup\.js/,
-      timeout: 60000, // 增加超时时间到 60 秒
+      timeout: 30000, // 认证流程 30 秒足够
     },
     // 登录测试 - 不需要认证（独立运行）
     {
