@@ -19,3 +19,9 @@ dist
 *.njsproj
 *.sln
 *.sw?
+
+# Test
+tests/e2e/.auth/
+playwright-report/
+test-results/
+dev-server.log

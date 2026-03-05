@@ -3,12 +3,10 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('驱虫记录功能测试', () => {
   test.beforeEach(async ({ page }) => {
-    // 先登录
-    await page.goto('/');
-    await page.locator('input[placeholder="请输入用户名"]').fill('admin');
-    await page.locator('input[type="password"]').fill('PetsLog2024');
-    await page.locator('button:has-text("登录")').click();
-    await page.waitForURL(/\/pages\/index\/index/);
+    // 认证状态已从 storageState 加载，直接访问首页
+    await page.goto('/pages/index/index');
+    // 等待页面加载完成
+    await page.waitForTimeout(1000);
   });
 
   test('驱虫记录 Tab 应该可以访问', async ({ page }) => {
@@ -77,11 +75,10 @@ test.describe('驱虫记录功能测试', () => {
 
 test.describe('疫苗记录功能测试', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.locator('input[placeholder="请输入用户名"]').fill('admin');
-    await page.locator('input[type="password"]').fill('PetsLog2024');
-    await page.locator('button:has-text("登录")').click();
-    await page.waitForURL(/\/pages\/index\/index/);
+    // 认证状态已从 storageState 加载，直接访问首页
+    await page.goto('/pages/index/index');
+    // 等待页面加载完成
+    await page.waitForTimeout(1000);
   });
 
   test('疫苗记录 Tab 应该可以访问', async ({ page }) => {
@@ -154,11 +151,10 @@ test.describe('疫苗记录功能测试', () => {
 
 test.describe('粮食记录功能测试', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.locator('input[placeholder="请输入用户名"]').fill('admin');
-    await page.locator('input[type="password"]').fill('PetsLog2024');
-    await page.locator('button:has-text("登录")').click();
-    await page.waitForURL(/\/pages\/index\/index/);
+    // 认证状态已从 storageState 加载，直接访问首页
+    await page.goto('/pages/index/index');
+    // 等待页面加载完成
+    await page.waitForTimeout(1000);
   });
 
   test('粮食记录 Tab 应该可以访问', async ({ page }) => {
