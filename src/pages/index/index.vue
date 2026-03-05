@@ -13,7 +13,13 @@
 
     <view class="pet-list">
       <view class="pet-card" v-for="(pet, index) in pets" :key="pet._id || index" @click="goToDetail(pet)">
-        <image class="pet-avatar" :src="pet.avatar || '/static/logo.png'" mode="aspectFill" />
+        <image 
+          class="pet-avatar" 
+          :src="pet.avatar || '/static/logo.png'" 
+          mode="aspectFill"
+          lazy-load
+          show-menu-by-longpress
+        />
         <view class="pet-info">
           <text class="pet-name">{{ pet.name }}</text>
           <text class="pet-breed">{{ pet.breed || '未知品种' }}</text>

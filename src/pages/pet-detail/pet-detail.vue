@@ -1,7 +1,12 @@
 <template>
   <view class="container">
     <view class="pet-header">
-      <image class="avatar" :src="petInfo.avatar || '/static/logo.png'" mode="aspectFill" />
+      <image 
+        class="avatar" 
+        :src="petInfo.avatar || '/static/logo.png'" 
+        mode="aspectFill"
+        lazy-load
+      />
       <view class="info">
         <text class="name">{{ petInfo.name }}</text>
         <text class="breed">{{ petInfo.breed || '未知品种' }}</text>
