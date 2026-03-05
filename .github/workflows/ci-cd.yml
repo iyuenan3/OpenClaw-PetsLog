@@ -54,8 +54,7 @@ jobs:
     - name: Run E2E tests
       run: |
         echo "Running E2E tests..."
-        npx playwright test --project=chromium --reporter=list || echo "Tests completed"
-      continue-on-error: true
+        npx playwright test --project=chromium --reporter=list
       env:
         CI: true
     
