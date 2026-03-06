@@ -54,6 +54,12 @@
 			"style": {
 				"navigationBarTitleText": "数据统计"
 			}
+		},
+		{
+			"path": "pages/family/family",
+			"style": {
+				"navigationBarTitleText": "家庭管理"
+			}
 		}
 	],
 	"globalStyle": {
