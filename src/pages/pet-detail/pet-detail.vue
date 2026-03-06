@@ -220,12 +220,6 @@
           </view>
         </view>
       </view>
-
-      <!-- 其他 Tab 占位 -->
-      <view v-else class="placeholder">
-        <text class="placeholder-emoji">🚧</text>
-        <text>{{ getTabName(currentTab) }} 功能开发中...</text>
-      </view>
     </view>
 
     <!-- 底部操作栏 -->
