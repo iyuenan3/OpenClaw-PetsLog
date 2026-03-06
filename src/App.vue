@@ -13,6 +13,8 @@ export default {
 </script>
 
 <style>
+@import './styles/dark-theme.scss';
+
 /* 每个页面公共 css - 使用 CSS 变量 */
 page {
   background-color: #f8fafc;

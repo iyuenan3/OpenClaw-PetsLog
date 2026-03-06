@@ -60,6 +60,12 @@
 			"style": {
 				"navigationBarTitleText": "家庭管理"
 			}
+		},
+		{
+			"path": "pages/settings/settings",
+			"style": {
+				"navigationBarTitleText": "设置"
+			}
 		}
 	],
 	"globalStyle": {
