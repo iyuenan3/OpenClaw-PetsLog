@@ -1,15 +1,13 @@
 /**
- * 数据导出云函数
- * 支持导出宠物数据和相关记录
- * 
- * @param {Object} params
- * @param {string} params.familyId - 家庭 ID
- * @param {string} params.petId - 宠物 ID（可选，不传则导出全部）
- * @param {string} params.format - 导出格式：json/csv
- * @param {array} params.fields - 导出的字段（可选，默认全部）
+ * 导出数据云函数
+ * @param {Object} event
+ * @param {string} event.familyId - 家庭 ID
+ * @param {string} event.petId - 宠物 ID（可选）
+ * @param {string} event.format - 导出格式：pdf/excel
+ * @param {Object} event.content - 导出内容配置
  */
 exports.main = async (event, context) => {
-  const { familyId, petId, format = 'json', fields = [] } = event;
+  const { familyId, petId, format = 'pdf', content = {} } = event;
   
   if (!familyId) {
     return {
@@ -19,80 +17,84 @@ exports.main = async (event, context) => {
   }
   
   const db = uniCloud.database();
-  const exportData = {
-    exportAt: new Date().toISOString(),
-    familyId,
-    pets: []
-  };
   
   try {
-    // 查询宠物
-    const petsQuery = { familyId };
-    if (petId) {
-      petsQuery._id = petId;
-    }
+    const exportData = {
+      exportAt: new Date().toISOString(),
+      format: format,
+      familyId: familyId,
+      pets: [],
+      records: {}
+    };
     
+    // 获取宠物列表
+    const petQuery = petId ? { _id: petId, familyId } : { familyId };
     const petsRes = await db.collection('pets')
-      .where(petsQuery)
+      .where(petQuery)
       .get();
     
-    // 对每只宠物，查询相关记录
-    for (const pet of petsRes.data) {
-      const petData = {
-        pet: formatPetData(pet, fields),
-        weightRecords: [],
-        dewormingRecords: [],
-        vaccineRecords: [],
-        healthRecords: [],
-        foodRecords: []
-      };
-      
-      // 查询体重记录
+    exportData.pets = petsRes.data;
+    
+    // 获取各类记录
+    if (content.weight !== false) {
+      const petIds = petsRes.data.map(p => p._id);
       const weightRes = await db.collection('weight_records')
-        .where({ petId: pet._id })
+        .where({ petId: db.command.in(petIds) })
         .orderBy('recordedAt', 'desc')
+        .limit(100)
         .get();
-      petData.weightRecords = weightRes.data.map(r => formatRecordData(r, fields));
-      
-      // 查询驱虫记录
-      const dewormingRes = await db.collection('deworming_records')
-        .where({ petId: pet._id })
-        .orderBy('usedAt', 'desc')
-        .get();
-      petData.dewormingRecords = dewormingRes.data.map(r => formatRecordData(r, fields));
-      
-      // 查询疫苗记录
-      const vaccineRes = await db.collection('vaccine_records')
-        .where({ petId: pet._id })
-        .orderBy('vaccinatedAt', 'desc')
-        .get();
-      petData.vaccineRecords = vaccineRes.data.map(r => formatRecordData(r, fields));
-      
-      // 查询健康记录
-      const healthRes = await db.collection('health_records')
-        .where({ petId: pet._id })
-        .orderBy('recordedAt', 'desc')
-        .get();
-      petData.healthRecords = healthRes.data.map(r => formatRecordData(r, fields));
-      
-      // 查询粮食记录
-      const foodRes = await db.collection('food_records')
-        .where({ petId: pet._id })
-        .orderBy('startDate', 'desc')
-        .get();
-      petData.foodRecords = foodRes.data.map(r => formatRecordData(r, fields));
-      
-      exportData.pets.push(petData);
+      exportData.records.weight = weightRes.data;
     }
     
-    // 根据格式返回数据
-    if (format === 'csv') {
+    if (content.health !== false) {
+      const petIds = petsRes.data.map(p => p._id);
+      const healthRes = await db.collection('health_records')
+        .where({ petId: db.command.in(petIds) })
+        .orderBy('recordedAt', 'desc')
+        .limit(100)
+        .get();
+      exportData.records.health = healthRes.data;
+    }
+    
+    if (content.vaccine !== false) {
+      const petIds = petsRes.data.map(p => p._id);
+      const vaccineRes = await db.collection('vaccine_records')
+        .where({ petId: db.command.in(petIds) })
+        .orderBy('vaccinatedAt', 'desc')
+        .limit(100)
+        .get();
+      exportData.records.vaccine = vaccineRes.data;
+    }
+    
+    if (content.deworming !== false) {
+      const petIds = petsRes.data.map(p => p._id);
+      const dewormingRes = await db.collection('deworming_records')
+        .where({ petId: db.command.in(petIds) })
+        .orderBy('usedAt', 'desc')
+        .limit(100)
+        .get();
+      exportData.records.deworming = dewormingRes.data;
+    }
+    
+    if (content.food !== false) {
+      const petIds = petsRes.data.map(p => p._id);
+      const foodRes = await db.collection('food_records')
+        .where({ petId: db.command.in(petIds) })
+        .orderBy('startDate', 'desc')
+        .limit(100)
+        .get();
+      exportData.records.food = foodRes.data;
+    }
+    
+    // 生成导出文件
+    if (format === 'excel') {
       return {
         code: 200,
         message: '导出成功',
         data: {
-          format: 'csv',
-          content: convertToCSV(exportData)
+          format: 'excel',
+          content: generateExcel(exportData),
+          filename: `petslog_export_${Date.now()}.csv`
         }
       };
     } else {
@@ -100,8 +102,9 @@ exports.main = async (event, context) => {
         code: 200,
         message: '导出成功',
         data: {
-          format: 'json',
-          content: exportData
+          format: 'pdf',
+          content: exportData,
+          filename: `petslog_report_${Date.now()}.json`
         }
       };
     }
@@ -109,181 +112,83 @@ exports.main = async (event, context) => {
     console.error('导出数据失败:', e);
     return {
       code: 500,
-      message: '导出数据失败，请稍后重试'
+      message: '导出数据失败'
     };
   }
 };
 
 /**
- * 格式化宠物数据
+ * 生成 Excel CSV 格式
  */
-function formatPetData(pet, fields) {
-  const data = {
-    _id: pet._id,
-    name: pet.name,
-    species: pet.species,
-    breed: pet.breed,
-    gender: pet.gender === 'male' ? '公' : pet.gender === 'female' ? '母' : '未知',
-    birthday: pet.birthday ? new Date(pet.birthday).toLocaleDateString('zh-CN') : '',
-    age: calculateAge(pet.birthday),
-    color: pet.color,
-    neutered: pet.neutered ? '已绝育' : '未绝育',
-    neuterDate: pet.neuterDate ? new Date(pet.neuterDate).toLocaleDateString('zh-CN') : '',
-    notes: pet.notes || '',
-    avatar: pet.avatar || '',
-    createdAt: pet.createdAt ? new Date(pet.createdAt).toLocaleString('zh-CN') : '',
-    updatedAt: pet.updatedAt ? new Date(pet.updatedAt).toLocaleString('zh-CN') : ''
-  };
-  
-  // 如果指定了字段，只返回指定字段
-  if (fields.length > 0) {
-    const filtered = {};
-    fields.forEach(key => {
-      if (data[key] !== undefined) filtered[key] = data[key];
-    });
-    return filtered;
-  }
-  
-  return data;
-}
-
-/**
- * 格式化记录数据
- */
-function formatRecordData(record, fields) {
-  const data = { ...record };
-  
-  // 转换时间戳为日期
-  ['recordedAt', 'usedAt', 'vaccinatedAt', 'startDate', 'endDate', 'nextReminder', 'createdAt', 'updatedAt'].forEach(key => {
-    if (data[key] && typeof data[key] === 'number') {
-      data[key + 'Str'] = new Date(data[key]).toLocaleString('zh-CN');
-    }
-  });
-  
-  // 转换枚举值
-  if (data.type) {
-    data.typeStr = {
-      'internal': '体内驱虫',
-      'external': '体外驱虫',
-      'dry': '干粮',
-      'wet': '湿粮',
-      'snack': '零食'
-    }[data.type] || data.type;
-  }
-  
-  if (data.status) {
-    data.statusStr = {
-      'observing': '观察中',
-      'treatment': '治疗中',
-      'recovered': '已恢复'
-    }[data.status] || data.status;
-  }
-  
-  // 如果指定了字段，只返回指定字段
-  if (fields.length > 0) {
-    const filtered = {};
-    fields.forEach(key => {
-      if (data[key] !== undefined) filtered[key] = data[key];
-    });
-    return filtered;
-  }
-  
-  return data;
-}
-
-/**
- * 计算年龄
- */
-function calculateAge(birthday) {
-  if (!birthday) return '';
-  const birth = new Date(birthday);
-  const now = new Date();
-  const years = now.getFullYear() - birth.getFullYear();
-  const months = now.getMonth() - birth.getMonth();
-  const days = now.getDate() - birth.getDate();
-  
-  if (years > 0) {
-    return `${years}岁${Math.max(0, months)}个月`;
-  } else if (months > 0) {
-    return `${months}个月${Math.max(0, days)}天`;
-  } else {
-    return `${days}天`;
-  }
-}
-
-/**
- * 转换为 CSV 格式
- */
-function convertToCSV(data) {
+function generateExcel(data) {
   let csv = '\uFEFF'; // BOM for UTF-8
   
   // 宠物基本信息
   csv += '=== 宠物信息 ===\n';
-  csv += '名字，品种，性别，年龄，毛色，绝育状态，备注\n';
-  data.pets.forEach(petData => {
-    const pet = petData.pet;
-    csv += `${pet.name},${pet.breed},${pet.gender},${pet.age},${pet.color},${pet.neutered},${pet.notes || ''}\n`;
+  csv += '姓名，品种，性别，年龄，毛色，绝育状态\n';
+  data.pets.forEach(pet => {
+    csv += `${pet.name},${pet.breed || ''},${pet.gender === 'male' ? '公' : pet.gender === 'female' ? '母' : ''},${pet.age || ''},${pet.color || ''},${pet.neutered ? '已绝育' : '未绝育'}\n`;
   });
   
   // 体重记录
-  csv += '\n=== 体重记录 ===\n';
-  data.pets.forEach(petData => {
-    if (petData.weightRecords.length > 0) {
-      csv += `\n宠物：${petData.pet.name}\n`;
-      csv += '日期，体重 (kg),备注\n';
-      petData.weightRecords.forEach(r => {
-        csv += `${r.recordedAtStr || ''},${r.weight || ''},${r.note || ''}\n`;
-      });
-    }
-  });
-  
-  // 驱虫记录
-  csv += '\n=== 驱虫记录 ===\n';
-  data.pets.forEach(petData => {
-    if (petData.dewormingRecords.length > 0) {
-      csv += `\n宠物：${petData.pet.name}\n`;
-      csv += '类型，品牌，型号，使用日期，下次提醒\n';
-      petData.dewormingRecords.forEach(r => {
-        csv += `${r.typeStr || ''},${r.brand || ''},${r.product || ''},${r.usedAtStr || ''},${r.nextReminder ? new Date(r.nextReminder).toLocaleDateString('zh-CN') : ''}\n`;
-      });
-    }
-  });
-  
-  // 疫苗记录
-  csv += '\n=== 疫苗记录 ===\n';
-  data.pets.forEach(petData => {
-    if (petData.vaccineRecords.length > 0) {
-      csv += `\n宠物：${petData.pet.name}\n`;
-      csv += '疫苗名称，类型，品牌，接种日期，下次提醒\n';
-      petData.vaccineRecords.forEach(r => {
-        csv += `${r.name || ''},${r.type || ''},${r.brand || ''},${r.vaccinatedAtStr || ''},${r.nextReminder ? new Date(r.nextReminder).toLocaleDateString('zh-CN') : ''}\n`;
-      });
-    }
-  });
+  if (data.records.weight && data.records.weight.length > 0) {
+    csv += '\n=== 体重记录 ===\n';
+    csv += '宠物姓名，体重 (kg),记录日期，备注\n';
+    data.records.weight.forEach(r => {
+      const pet = data.pets.find(p => p._id === r.petId);
+      csv += `${pet ? pet.name : ''},${r.weight || ''},${formatDate(r.recordedAt)},${r.note || ''}\n`;
+    });
+  }
   
   // 健康记录
-  csv += '\n=== 健康记录 ===\n';
-  data.pets.forEach(petData => {
-    if (petData.healthRecords.length > 0) {
-      csv += `\n宠物：${petData.pet.name}\n`;
-      csv += '症状，观察记录，状态，日期\n';
-      petData.healthRecords.forEach(r => {
-        csv += `${r.symptom || ''},${r.observation || ''},${r.statusStr || ''},${r.recordedAtStr || ''}\n`;
-      });
-    }
-  });
+  if (data.records.health && data.records.health.length > 0) {
+    csv += '\n=== 健康记录 ===\n';
+    csv += '宠物姓名，症状，观察记录，状态，记录日期\n';
+    data.records.health.forEach(r => {
+      const pet = data.pets.find(p => p._id === r.petId);
+      csv += `${pet ? pet.name : ''},${r.symptom || ''},${r.observation || ''},${r.status || ''},${formatDate(r.recordedAt)}\n`;
+    });
+  }
+  
+  // 疫苗记录
+  if (data.records.vaccine && data.records.vaccine.length > 0) {
+    csv += '\n=== 疫苗记录 ===\n';
+    csv += '宠物姓名，疫苗名称，类型，品牌，接种日期\n';
+    data.records.vaccine.forEach(r => {
+      const pet = data.pets.find(p => p._id === r.petId);
+      csv += `${pet ? pet.name : ''},${r.name || ''},${r.type || ''},${r.brand || ''},${formatDate(r.vaccinatedAt)}\n`;
+    });
+  }
+  
+  // 驱虫记录
+  if (data.records.deworming && data.records.deworming.length > 0) {
+    csv += '\n=== 驱虫记录 ===\n';
+    csv += '宠物姓名，类型，品牌，型号，使用日期\n';
+    data.records.deworming.forEach(r => {
+      const pet = data.pets.find(p => p._id === r.petId);
+      csv += `${pet ? pet.name : ''},${r.type === 'internal' ? '体内驱虫' : '体外驱虫'},${r.brand || ''},${r.product || ''},${formatDate(r.usedAt)}\n`;
+    });
+  }
   
   // 粮食记录
-  csv += '\n=== 粮食记录 ===\n';
-  data.pets.forEach(petData => {
-    if (petData.foodRecords.length > 0) {
-      csv += `\n宠物：${petData.pet.name}\n`;
-      csv += '品牌，型号，类型，开始日期，结束日期\n';
-      petData.foodRecords.forEach(r => {
-        csv += `${r.brand || ''},${r.product || ''},${r.typeStr || ''},${r.startDateStr || ''},${r.endDateStr || ''}\n`;
-      });
-    }
-  });
+  if (data.records.food && data.records.food.length > 0) {
+    csv += '\n=== 粮食记录 ===\n';
+    csv += '宠物姓名，品牌，型号，类型，开始日期，结束日期\n';
+    data.records.food.forEach(r => {
+      const pet = data.pets.find(p => p._id === r.petId);
+      const type = r.type === 'dry' ? '干粮' : r.type === 'wet' ? '湿粮' : '零食';
+      csv += `${pet ? pet.name : ''},${r.brand || ''},${r.product || ''},${type},${formatDate(r.startDate)},${r.endDate ? formatDate(r.endDate) : ''}\n`;
+    });
+  }
   
   return csv;
+}
+
+/**
+ * 格式化日期
+ */
+function formatDate(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }

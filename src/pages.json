@@ -68,6 +68,33 @@
 			}
 		}
 	],
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#667eea",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "宠物",
+				"iconPath": "static/tabbar/pets.png",
+				"selectedIconPath": "static/tabbar/pets-active.png"
+			},
+			{
+				"pagePath": "pages/statistics/statistics",
+				"text": "统计",
+				"iconPath": "static/tabbar/stats.png",
+				"selectedIconPath": "static/tabbar/stats-active.png"
+			},
+			{
+				"pagePath": "pages/settings/settings",
+				"text": "设置",
+				"iconPath": "static/tabbar/settings.png",
+				"selectedIconPath": "static/tabbar/settings-active.png"
+			}
+		]
+	}
+}
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "PetsLog",
