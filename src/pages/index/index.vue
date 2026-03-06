@@ -1,5 +1,8 @@
 <template>
   <view class="container">
+    <!-- 提醒卡片 -->
+    <reminder-card />
+    
     <view class="header">
       <view class="user-info" v-if="user">
         <text class="welcome">欢迎，{{ user.username }}</text>
@@ -47,7 +50,12 @@
 </template>
 
 <script>
+import ReminderCard from '@/components/ReminderCard.vue';
+
 export default {
+  components: {
+    ReminderCard
+  },
   data() {
     return {
       pets: [],
