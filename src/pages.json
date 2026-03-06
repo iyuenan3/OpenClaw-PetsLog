@@ -48,6 +48,12 @@
 			"style": {
 				"navigationBarTitleText": "数据导出"
 			}
+		},
+		{
+			"path": "pages/statistics/statistics",
+			"style": {
+				"navigationBarTitleText": "数据统计"
+			}
 		}
 	],
 	"globalStyle": {
