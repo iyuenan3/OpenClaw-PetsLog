@@ -44,5 +44,25 @@
     "uniStatistics": {  
         "enable": false
     },
-    "vueVersion" : "3"
+    "vueVersion" : "3",
+    "tabBar": {
+        "color": "#999999",
+        "selectedColor": "#667eea",
+        "borderStyle": "black",
+        "backgroundColor": "#ffffff",
+        "list": [
+            {
+                "pagePath": "pages/index/index",
+                "text": "宠物",
+                "iconPath": "static/tabbar/pet.png",
+                "selectedIconPath": "static/tabbar/pet-active.png"
+            },
+            {
+                "pagePath": "pages/records/records",
+                "text": "记录",
+                "iconPath": "static/tabbar/record.png",
+                "selectedIconPath": "static/tabbar/record-active.png"
+            }
+        ]
+    }
 }
