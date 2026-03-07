@@ -12,10 +12,50 @@
         <text class="title">我的宠物</text>
         <button class="btn-add" @click="addPet">+ 添加</button>
       </view>
+      
+      <!-- 搜索框 -->
+      <view class="search-bar">
+        <view class="search-input">
+          <text class="search-icon">🔍</text>
+          <input 
+            class="search-text" 
+            v-model="searchText"
+            placeholder="搜索宠物名字、品种..."
+            confirm-type="search"
+            @confirm="onSearch"
+          />
+          <text class="search-clear" v-if="searchText" @click="clearSearch">✕</text>
+        </view>
+      </view>
+      
+      <!-- 筛选器 -->
+      <view class="filter-bar">
+        <view 
+          class="filter-tag" 
+          :class="{ active: filterSpecies === 'all' }"
+          @click="filterSpecies = 'all'"
+        >
+          <text>全部</text>
+        </view>
+        <view 
+          class="filter-tag" 
+          :class="{ active: filterSpecies === 'cat' }"
+          @click="filterSpecies = 'cat'"
+        >
+          <text>🐱 猫咪</text>
+        </view>
+        <view 
+          class="filter-tag" 
+          :class="{ active: filterSpecies === 'dog' }"
+          @click="filterSpecies = 'dog'"
+        >
+          <text>🐶 狗狗</text>
+        </view>
+      </view>
     </view>
 
     <view class="pet-list">
-      <view class="pet-card" v-for="(pet, index) in pets" :key="pet._id || index" @click="goToDetail(pet)">
+      <view class="pet-card" v-for="(pet, index) in filteredPets" :key="pet._id || index" @click="goToDetail(pet)">
         <view class="avatar-wrapper">
           <image 
             class="pet-avatar" 
@@ -60,7 +100,30 @@ export default {
     return {
       pets: [],
       user: null,
-      loading: false
+      loading: false,
+      searchText: '',
+      filterSpecies: 'all' // all, cat, dog
+    }
+  },
+  computed: {
+    filteredPets() {
+      let filtered = this.pets;
+      
+      // 按物种筛选
+      if (this.filterSpecies !== 'all') {
+        filtered = filtered.filter(pet => pet.species === this.filterSpecies);
+      }
+      
+      // 按搜索文本筛选
+      if (this.searchText.trim()) {
+        const text = this.searchText.trim().toLowerCase();
+        filtered = filtered.filter(pet => 
+          pet.name.toLowerCase().includes(text) ||
+          (pet.breed && pet.breed.toLowerCase().includes(text))
+        );
+      }
+      
+      return filtered;
     }
   },
   onLoad() {
