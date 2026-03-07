@@ -12,7 +12,7 @@ test.describe('提醒功能测试', () => {
     await page.waitForTimeout(3000);
     
     // 验证页面加载
-    const pageContent = page.locator('.container, .page, #app');
+    const pageContent = page.locator('.container, .page, #app').first();
     await expect(pageContent).toBeVisible();
   });
 
@@ -21,8 +21,8 @@ test.describe('提醒功能测试', () => {
     await page.waitForTimeout(2000);
     
     // 查找 Tab 容器
-    const tabs = page.locator('.tabs, .tab-bar, .filter-bar');
-    await expect(tabs.first()).toBeVisible();
+    const tabs = page.locator('.tabs, .tab-bar, .filter-bar').first();
+    await expect(tabs).toBeVisible();
   });
 
   test('提醒列表应该可以显示', async ({ page }) => {
@@ -30,8 +30,8 @@ test.describe('提醒功能测试', () => {
     await page.waitForTimeout(2000);
     
     // 查找列表容器
-    const listContainer = page.locator('.reminder-list, .list, .scroll-view, .container');
-    await expect(listContainer.first()).toBeVisible();
+    const listContainer = page.locator('.reminder-list, .list, .scroll-view').first();
+    await expect(listContainer).toBeVisible();
   });
 
   test('提醒设置页面应该可以访问', async ({ page }) => {
@@ -39,7 +39,7 @@ test.describe('提醒功能测试', () => {
     await page.waitForTimeout(3000);
     
     // 验证页面加载
-    const pageContent = page.locator('.container, .page, #app');
+    const pageContent = page.locator('.container, .page, #app').first();
     await expect(pageContent).toBeVisible();
   });
 
@@ -68,7 +68,7 @@ test.describe('提醒功能测试', () => {
     await page.waitForTimeout(2000);
     
     // 查找保存按钮
-    const saveButton = page.locator('button:has-text("保存"), .btn-primary, .save-btn');
-    await expect(saveButton.first()).toBeVisible();
+    const saveButton = page.locator('button:has-text("保存"), .btn-primary, .save-btn').first();
+    await expect(saveButton).toBeVisible();
   });
 });
