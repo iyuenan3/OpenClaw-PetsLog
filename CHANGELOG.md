@@ -27,6 +27,50 @@
 
 ---
 
+## [1.0.0-alpha.13] - 2026-03-07
+
+### Added - 提醒功能后端实现
+
+#### 云函数
+- `uniCloud-aliyun/cloudfunctions/reminder-manage/index.js`: 提醒管理云函数
+  - 支持操作：list（列表）/ done（完成）/ toggle（启用禁用）/ delete（删除）/ settings（设置）
+  - 获取未来 30 天内所有提醒
+  - 自动计算下次提醒时间（驱虫 +90 天/疫苗 +365 天）
+  - 紧急程度标识：urgent（≤1 天）/ soon（2-3 天）/ normal（4-30 天）
+  - 支持 4 类提醒：驱虫、疫苗、生日、称重
+
+- `uniCloud-aliyun/cloudfunctions/daily-reminder/index.js`: 每日定时提醒
+  - 触发器：每天上午 9:00 执行（`0 0 9 * * *`）
+  - 检查当天到期的驱虫/疫苗提醒
+  - 检查当天生日的宠物
+  - 每月 1 号自动提醒称重
+  - 生成推送通知（需配置推送服务）
+
+- `uniCloud-aliyun/cloudfunctions/daily-reminder/triggers.json`: 定时任务配置
+
+#### 前端更新
+- `src/pages/reminders/reminders.vue`: 集成新提醒管理云函数
+  - 使用 `reminder-manage` 替代 `check-reminders`
+  - 实现标记完成功能（自动计算下次提醒时间）
+  - 按紧急程度排序提醒
+  - 优化 UI 展示（剩余天数、紧急标识）
+
+#### 提醒规则
+- 💊 驱虫提醒：完成后 +90 天（3 个月）
+- 💉 疫苗提醒：完成后 +365 天（1 年）
+- 🎂 生日提醒：自动计算明年生日
+- ⚖️ 称重提醒：每月 1 号自动提醒
+
+#### 文档
+- `docs/reminder-guide.md`: 提醒功能开发指南
+  - 系统架构说明
+  - 云函数 API 文档
+  - 部署步骤
+  - 提醒规则详解
+  - 常见问题解答
+
+---
+
 ## [1.0.0-alpha.12] - 2026-03-07
 
 ### Added - 离线模式与语音输入功能
