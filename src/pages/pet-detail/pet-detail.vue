@@ -92,7 +92,7 @@
           <weight-chart :records="weightRecords" :height="280" />
         </view>
         
-        <button class="btn btn-primary btn-block" @click="addRecord('weight')">+ 添加体重记录</button>
+        <button class="btn btn-primary btn-block" @click="goToAddWeight">⚖️ 添加体重记录 🎤</button>
         
         <view class="record-list">
           <view class="record-item" v-for="(record, index) in weightRecords" :key="record._id || index">
@@ -476,67 +476,11 @@ export default {
         }
       });
     },
-    addRecord(type) {
-      if (type === 'weight') {
-        this.showWeightInput();
-      }
-    },
-    async showWeightInput() {
-      uni.showModal({
-        title: '添加体重记录',
-        editable: true,
-        placeholderText: '请输入体重 (kg)',
-        success: (res) => {
-          if (res.confirm && res.content) {
-            const weight = parseFloat(res.content);
-            if (isNaN(weight) || weight <= 0) {
-              uni.showToast({ title: '请输入有效的体重', icon: 'none' });
-            } else {
-              this.showWeightNote(weight);
-            }
-          }
-        }
+    goToAddWeight() {
+      // 跳转到新的体重记录页面（支持语音输入和离线模式）
+      uni.navigateTo({
+        url: '/pages/weight/add-weight'
       });
-    },
-    showWeightNote(weight) {
-      uni.showModal({
-        title: '添加备注（可选）',
-        editable: true,
-        placeholderText: '例如：刚吃完早饭、精神状态好等',
-        confirmText: '保存',
-        cancelText: '跳过',
-        success: (res) => {
-          if (res.confirm) {
-            this.saveWeightRecord(weight, res.content || '');
-          } else {
-            this.saveWeightRecord(weight, '');
-          }
-        }
-      });
-    },
-    async saveWeightRecord(weight, note) {
-      try {
-        const res = await uniCloud.callFunction({
-          name: 'weight-record',
-          data: {
-            action: 'create',
-            petId: this.petId,
-            weight: weight,
-            note: note,
-            recordedAt: Date.now()
-          }
-        });
-        
-        if (res.result.code === 201) {
-          uni.showToast({ title: '添加成功', icon: 'success' });
-          this.loadWeightRecords();
-        } else {
-          uni.showToast({ title: res.result.message, icon: 'none' });
-        }
-      } catch (e) {
-        console.error('保存体重记录失败:', e);
-        uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
-      }
     },
     async deleteRecord(recordId) {
       uni.showModal({

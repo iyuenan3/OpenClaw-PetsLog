@@ -1,10 +1,22 @@
 <script>
+import { initNetworkMonitor, isNetworkConnected } from './utils/network'
+
 export default {
   onLaunch: function () {
     console.log('App Launch')
+    // 初始化网络状态监听
+    initNetworkMonitor()
   },
   onShow: function () {
     console.log('App Show')
+    // 检查网络状态
+    if (!isNetworkConnected()) {
+      uni.showToast({
+        title: '📴 离线模式',
+        icon: 'none',
+        duration: 2000
+      })
+    }
   },
   onHide: function () {
     console.log('App Hide')
