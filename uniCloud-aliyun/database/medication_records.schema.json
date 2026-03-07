@@ -1,0 +1,52 @@
+{
+  "bsonType": "object",
+  "required": ["familyId", "petId", "medicineName", "dosage", "frequency"],
+  "permission": {
+    "read": "auth.user_id in (SELECT _id FROM users WHERE familyId == doc.familyId)",
+    "create": "auth.user_id in (SELECT _id FROM users WHERE familyId == doc.familyId)",
+    "update": "auth.user_id in (SELECT _id FROM users WHERE familyId == doc.familyId)",
+    "delete": "auth.user_id in (SELECT _id FROM users WHERE familyId == doc.familyId)"
+  },
+  "properties": {
+    "_id": { "description": "ID，系统自动生成" },
+    "familyId": { "bsonType": "string", "description": "家庭 ID" },
+    "petId": { "bsonType": "string", "description": "宠物 ID" },
+    "petName": { "bsonType": "string", "description": "宠物名字" },
+    "medicineName": { "bsonType": "string", "description": "药品名称" },
+    "dosage": { "bsonType": "string", "description": "每次剂量（如：1 片/5ml）" },
+    "frequency": { 
+      "bsonType": "string", 
+      "description": "用药频率",
+      "enum": ["once_daily", "twice_daily", "three_times_daily", "as_needed", "custom"]
+    },
+    "frequencyCustom": { "bsonType": "string", "description": "自定义频率说明" },
+    "startDate": { "bsonType": "timestamp", "description": "开始日期" },
+    "endDate": { "bsonType": "timestamp", "description": "结束日期（可选）" },
+    "duration": { "bsonType": "int", "description": "疗程天数" },
+    "purpose": { "bsonType": "string", "description": "用药目的/治疗疾病" },
+    "instructions": { "bsonType": "string", "description": "用药说明（饭前/饭后等）" },
+    "prescriptionHospital": { "bsonType": "string", "description": "处方医院" },
+    "prescriptionDoctor": { "bsonType": "string", "description": "处方医生" },
+    "status": { 
+      "bsonType": "string", 
+      "description": "用药状态",
+      "enum": ["ongoing", "completed", "paused", "discontinued"]
+    },
+    "remindEnabled": { "bsonType": "bool", "description": "是否启用提醒" },
+    "remindTimes": { 
+      "bsonType": "array", 
+      "description": "提醒时间点（如：[\"08:00\", \"20:00\"]）",
+      "items": { "bsonType": "string" }
+    },
+    "lastDoseTime": { "bsonType": "timestamp", "description": "上次用药时间" },
+    "nextDoseTime": { "bsonType": "timestamp", "description": "下次用药时间" },
+    "notes": { "bsonType": "string", "description": "备注" },
+    "attachments": {
+      "bsonType": "array",
+      "description": "处方照片等附件",
+      "items": { "bsonType": "string" }
+    },
+    "createdAt": { "bsonType": "timestamp", "description": "创建时间" },
+    "updatedAt": { "bsonType": "timestamp", "description": "更新时间" }
+  }
+}
