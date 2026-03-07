@@ -112,98 +112,26 @@ export default {
         const userStr = uni.getStorageSync('user')
         const user = JSON.parse(userStr)
         
+        // 使用新的提醒管理云函数
         const res = await uniCloud.callFunction({
-          name: 'check-reminders',
+          name: 'reminder-manage',
           data: {
-            familyId: user.familyId,
-            daysAhead: 30
+            action: 'list',
+            familyId: user.familyId
           }
         })
         
         if (res.result.code === 200) {
-          this.formatReminders(res.result.data.reminders)
+          this.reminders = res.result.data.reminders || []
+          this.allReminders = this.reminders
         }
       } catch (e) {
         console.error('加载提醒失败:', e)
-      }
-    },
-    
-    formatReminders(data) {
-      const reminders = []
-      
-      // 驱虫提醒
-      if (data.deworming && data.deworming.length > 0) {
-        data.deworming.forEach(item => {
-          reminders.push({
-            type: 'deworming',
-            icon: '💊',
-            title: `${item.petName} - 驱虫提醒`,
-            desc: item.type === 'internal' ? '体内驱虫' : '体外驱虫',
-            time: `剩余 ${item.daysLeft} 天`,
-            petId: item.petId,
-            petName: item.petName,
-            daysLeft: item.daysLeft,
-            urgent: item.daysLeft <= 3
-          })
+        uni.showToast({
+          title: '加载失败',
+          icon: 'none'
         })
       }
-      
-      // 疫苗提醒
-      if (data.vaccine && data.vaccine.length > 0) {
-        data.vaccine.forEach(item => {
-          reminders.push({
-            type: 'vaccine',
-            icon: '💉',
-            title: `${item.petName} - 疫苗提醒`,
-            desc: item.vaccineName,
-            time: `剩余 ${item.daysLeft} 天`,
-            petId: item.petId,
-            petName: item.petName,
-            daysLeft: item.daysLeft,
-            urgent: item.daysLeft <= 3
-          })
-        })
-      }
-      
-      // 生日提醒
-      if (data.birthday && data.birthday.length > 0) {
-        data.birthday.forEach(item => {
-          reminders.push({
-            type: 'birthday',
-            icon: '🎂',
-            title: `${item.petName} 生日`,
-            desc: `还有 ${item.daysUntil} 天就 ${item.age} 岁了`,
-            time: `${item.daysUntil} 天后`,
-            petId: item.petId,
-            petName: item.petName,
-            daysLeft: item.daysUntil,
-            urgent: item.daysUntil <= 7
-          })
-        })
-      }
-      
-      // 称重提醒
-      if (data.weight && data.weight.length > 0) {
-        data.weight.forEach(item => {
-          reminders.push({
-            type: 'weight',
-            icon: '⚖️',
-            title: '宠物称重',
-            desc: item.petName + ' - ' + item.message,
-            time: '今天',
-            petId: null,
-            petName: item.petName,
-            daysLeft: 0,
-            urgent: true
-          })
-        })
-      }
-      
-      // 按紧急程度排序
-      reminders.sort((a, b) => (a.daysLeft || 999) - (b.daysLeft || 999))
-      
-      this.allReminders = reminders
-      this.reminders = reminders
     },
     
     handleReminder(reminder) {
@@ -214,20 +142,65 @@ export default {
       }
     },
     
-    markAsDone(reminder) {
-      uni.showModal({
-        title: '确认完成',
-        content: '确定已完成这项提醒吗？',
-        success: (res) => {
-          if (res.confirm) {
-            uni.showToast({
-              title: '已标记完成',
-              icon: 'success'
-            })
-            this.loadReminders()
-          }
+    async markAsDone(reminder) {
+      // 虚拟提醒（生日、体重）不需要调用云函数
+      if (reminder._id?.startsWith('birthday_') || reminder._id?.startsWith('weight_')) {
+        uni.showToast({
+          title: '已标记完成',
+          icon: 'success'
+        })
+        this.loadReminders()
+        return
+      }
+      
+      uni.showLoading({ title: '处理中...' })
+      
+      try {
+        // 计算下一次提醒时间
+        const now = Date.now()
+        let nextReminder = 0
+        
+        if (reminder.type === 'deworming') {
+          // 驱虫默认 3 个月后
+          nextReminder = now + 90 * 24 * 60 * 60 * 1000
+        } else if (reminder.type === 'vaccine') {
+          // 疫苗默认 1 年后
+          nextReminder = now + 365 * 24 * 60 * 60 * 1000
         }
-      })
+        
+        const res = await uniCloud.callFunction({
+          name: 'reminder-manage',
+          data: {
+            action: 'done',
+            reminderId: reminder._id,
+            data: {
+              nextReminder,
+              remindInterval: true
+            }
+          }
+        })
+        
+        if (res.result.code === 200) {
+          uni.showToast({
+            title: '已标记完成',
+            icon: 'success'
+          })
+          this.loadReminders()
+        } else {
+          uni.showToast({
+            title: res.result.message || '操作失败',
+            icon: 'none'
+          })
+        }
+      } catch (e) {
+        console.error('标记完成失败:', e)
+        uni.showToast({
+          title: '操作失败',
+          icon: 'none'
+        })
+      } finally {
+        uni.hideLoading()
+      }
     },
     
     goToSettings() {
