@@ -4,6 +4,10 @@
  * @param {string} params.username - 用户名
  * @param {string} params.password - 密码
  */
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'petslog-secret-key-change-in-production';
+
 exports.main = async (event, context) => {
   const { username, password } = event;
   
@@ -31,23 +35,28 @@ exports.main = async (event, context) => {
   
   const user = userResult.data[0];
   
-  // 验证密码（简单哈希对比，生产环境应用 bcrypt）
-  const crypto = require('crypto');
-  const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+  // 验证密码（使用 bcrypt）
+  const passwordValid = await bcrypt.compare(password, user.passwordHash);
   
-  if (user.passwordHash !== passwordHash) {
+  if (!passwordValid) {
     return {
       code: 401,
       message: '密码错误'
     };
   }
   
-  // 生成 token（简单实现，生产环境应用 JWT）
-  const token = crypto.createHash('sha256')
-    .update(user._id + Date.now())
-    .digest('hex');
+  // 生成 JWT token
+  const token = jwt.sign(
+    {
+      userId: user._id,
+      username: user.username,
+      familyId: user.familyId
+    },
+    JWT_SECRET,
+    { expiresIn: '7d' } // 7 天有效期
+  );
   
-  // 更新 token 到数据库（实际应用中应该有过期时间）
+  // 更新 token 到数据库（用于 token 撤销验证）
   await usersCollection.doc(user._id).update({
     token: token,
     tokenExpire: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 天有效期

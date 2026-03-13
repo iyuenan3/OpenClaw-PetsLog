@@ -22,9 +22,9 @@ exports.main = async (event, context) => {
     const thirtyDaysLater = new Date();
     thirtyDaysLater.setDate(now.getDate() + 30);
     
-    // 1. 宠物总数
+    // 1. 宠物总数（移除不存在的 deleted 字段）
     const petsRes = await db.collection('pets')
-      .where({ familyId, deleted: false })
+      .where({ familyId })
       .field({ _id: true, healthStatus: true })
       .get();
     
@@ -37,8 +37,7 @@ exports.main = async (event, context) => {
         familyId,
         remindTime: db.command.gte(todayStart.getTime()),
         remindTime: db.command.lte(todayEnd.getTime()),
-        completed: false,
-        deleted: false
+        completed: false
       })
       .count();
     
@@ -46,8 +45,7 @@ exports.main = async (event, context) => {
     const expensesRes = await db.collection('food_records')
       .where({
         familyId,
-        paidAt: db.command.gte(startOfMonth.getTime()),
-        deleted: false
+        paidAt: db.command.gte(startOfMonth.getTime())
       })
       .field({ amount: true })
       .get();
@@ -72,8 +70,7 @@ exports.main = async (event, context) => {
       .where({
         familyId,
         dueDate: db.command.lt(thirtyDaysLater.getTime()),
-        completed: false,
-        deleted: false
+        completed: false
       })
       .count();
     
@@ -82,14 +79,13 @@ exports.main = async (event, context) => {
       .where({
         familyId,
         dueDate: db.command.lt(thirtyDaysLater.getTime()),
-        completed: false,
-        deleted: false
+        completed: false
       })
       .count();
     
     // 7. 体重记录（用于趋势图）
     const weightRecordsRes = await db.collection('weight_records')
-      .where({ familyId, deleted: false })
+      .where({ familyId })
       .orderBy('recordDate', 'asc')
       .limit(100)
       .field({ petId: true, weight: true, recordDate: true })

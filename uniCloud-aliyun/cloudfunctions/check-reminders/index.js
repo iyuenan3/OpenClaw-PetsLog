@@ -28,19 +28,38 @@ exports.main = async (event, context) => {
   };
   
   try {
-    // 1. 检查驱虫提醒
+    // 先查询该家庭的所有宠物
+    const petsRes = await db.collection('pets')
+      .where({ familyId })
+      .get();
+    
+    const petIds = petsRes.data.map(pet => pet._id);
+    
+    if (petIds.length === 0) {
+      return {
+        code: 200,
+        message: '获取成功',
+        data: {
+          reminders,
+          total: 0
+        }
+      };
+    }
+    
+    // 1. 检查驱虫提醒（使用 petId 列表查询）
     const dewormingRes = await db.collection('deworming_records')
       .where({
-        familyId,
+        petId: db.command.in(petIds),
         nextReminder: db.command.gt(now - daysMs),
         nextReminder: db.command.lte(now + daysMs)
       })
       .get();
     
     dewormingRes.data.forEach(record => {
+      const pet = petsRes.data.find(p => p._id === record.petId);
       reminders.deworming.push({
         petId: record.petId,
-        petName: record.petName,
+        petName: pet ? pet.name : '未知',
         type: record.type === 'internal' ? '体内驱虫' : '体外驱虫',
         nextReminder: record.nextReminder,
         daysLeft: Math.ceil((record.nextReminder - now) / (24 * 60 * 60 * 1000))
@@ -50,16 +69,17 @@ exports.main = async (event, context) => {
     // 2. 检查疫苗提醒
     const vaccineRes = await db.collection('vaccine_records')
       .where({
-        familyId,
+        petId: db.command.in(petIds),
         nextReminder: db.command.gt(now - daysMs),
         nextReminder: db.command.lte(now + daysMs)
       })
       .get();
     
     vaccineRes.data.forEach(record => {
+      const pet = petsRes.data.find(p => p._id === record.petId);
       reminders.vaccine.push({
         petId: record.petId,
-        petName: record.petName,
+        petName: pet ? pet.name : '未知',
         vaccineName: record.name,
         nextReminder: record.nextReminder,
         daysLeft: Math.ceil((record.nextReminder - now) / (24 * 60 * 60 * 1000))
@@ -67,10 +87,6 @@ exports.main = async (event, context) => {
     });
     
     // 3. 检查生日提醒（未来 7 天内）
-    const petsRes = await db.collection('pets')
-      .where({ familyId })
-      .get();
-    
     const currentYear = new Date(now).getFullYear();
     petsRes.data.forEach(pet => {
       if (pet.birthday) {

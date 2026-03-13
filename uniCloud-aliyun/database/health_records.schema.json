@@ -3,9 +3,9 @@
   "required": ["petId", "symptom", "recordedAt"],
   "permission": {
     "read": "auth.user_id in (SELECT _id FROM users WHERE familyId == (SELECT familyId FROM pets WHERE _id == doc.petId))",
-    "create": true,
-    "update": true,
-    "delete": true
+    "create": "auth.user_id in (SELECT _id FROM users WHERE familyId == (SELECT familyId FROM pets WHERE _id == doc.petId))",
+    "update": "auth.user_id in (SELECT _id FROM users WHERE familyId == (SELECT familyId FROM pets WHERE _id == doc.petId))",
+    "delete": "auth.user_id in (SELECT _id FROM users WHERE familyId == (SELECT familyId FROM pets WHERE _id == doc.petId))"
   },
   "properties": {
     "_id": { "description": "ID，系统自动生成" },
