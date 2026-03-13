@@ -1,0 +1,56 @@
+{
+  "bsonType": "object",
+  "required": ["user_id", "file_url", "type"],
+  "permission": {
+    "read": "auth.user_id == doc.user_id",
+    "create": "auth.user_id == doc.user_id",
+    "update": "auth.user_id == doc.user_id",
+    "delete": "auth.user_id == doc.user_id"
+  },
+  "properties": {
+    "_id": { "description": "ID，系统自动生成" },
+    "user_id": { "bsonType": "string", "description": "用户 ID" },
+    "file_url": { "bsonType": "string", "description": "文件 URL（OSS 地址）" },
+    "file_name": { "bsonType": "string", "description": "文件名" },
+    "file_size": { "bsonType": "int", "description": "文件大小（字节）" },
+    "type": { 
+      "bsonType": "string", 
+      "description": "备份类型",
+      "enum": ["export", "auto_backup"]
+    },
+    "data_type": { 
+      "bsonType": "string", 
+      "description": "数据类型",
+      "enum": ["all", "food", "health", "weight", "vaccine", "deworming", "medication"]
+    },
+    "start_date": { "bsonType": "timestamp", "description": "数据起始日期" },
+    "end_date": { "bsonType": "timestamp", "description": "数据截止日期" },
+    "format": { 
+      "bsonType": "string", 
+      "description": "导出格式",
+      "enum": ["excel", "pdf"]
+    },
+    "status": { 
+      "bsonType": "string", 
+      "description": "状态",
+      "enum": ["processing", "completed", "failed"]
+    },
+    "error_message": { "bsonType": "string", "description": "错误信息（失败时）" },
+    "created_at": { "bsonType": "timestamp", "description": "创建时间" },
+    "expires_at": { "bsonType": "timestamp", "description": "过期时间（OSS 文件过期）" }
+  },
+  "indexes": {
+    "user_id_index": {
+      "keys": { "user_id": 1 },
+      "background": true
+    },
+    "user_id_created_at_index": {
+      "keys": { "user_id": 1, "created_at": -1 },
+      "background": true
+    },
+    "status_index": {
+      "keys": { "status": 1 },
+      "background": true
+    }
+  }
+}

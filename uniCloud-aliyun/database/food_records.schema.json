@@ -9,12 +9,22 @@
   },
   "properties": {
     "_id": { "description": "ID，系统自动生成" },
-    "petId": { "bsonType": "string", "description": "宠物 ID" },
+    "petId": { "bsonType": "string", "description": "宠物 ID", "index": true },
     "brand": { "bsonType": "string", "description": "品牌" },
     "product": { "bsonType": "string", "description": "产品型号" },
     "type": { "bsonType": "string", "description": "粮食类型" },
     "startDate": { "bsonType": "timestamp", "description": "开始日期" },
     "endDate": { "bsonType": "timestamp", "description": "结束日期" },
     "note": { "bsonType": "string", "description": "备注" }
+  },
+  "indexes": {
+    "petId_index": {
+      "keys": { "petId": 1 },
+      "background": true
+    },
+    "petId_createdAt_index": {
+      "keys": { "petId": 1, "createdAt": -1 },
+      "background": true
+    }
   }
 }

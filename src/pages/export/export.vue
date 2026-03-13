@@ -2,563 +2,478 @@
   <view class="container">
     <view class="header">
       <text class="title">📤 数据导出</text>
-      <text class="subtitle">导出宠物数据为 PDF 或 Excel</text>
+      <text class="subtitle">导出宠物健康记录为 Excel 或 PDF</text>
     </view>
-
-    <!-- 导出范围选择 -->
-    <view class="section">
-      <text class="section-title">导出范围</text>
+    
+    <view class="form-section">
+      <view class="section-title">选择数据类型</view>
       
-      <view class="range-options">
+      <view class="option-grid">
         <view 
-          class="range-option" 
-          :class="{ active: exportRange === 'all' }"
-          @click="exportRange = 'all'"
+          class="option-card"
+          :class="{ active: dataType === 'all' }"
+          @click="dataType = 'all'"
         >
-          <text class="range-icon">📊</text>
-          <text class="range-text">全部数据</text>
-          <text class="range-desc">所有宠物和记录</text>
+          <text class="option-icon">📊</text>
+          <text class="option-text">全部数据</text>
         </view>
         
         <view 
-          class="range-option" 
-          :class="{ active: exportRange === 'single' }"
-          @click="exportRange = 'single'"
+          class="option-card"
+          :class="{ active: dataType === 'food' }"
+          @click="dataType = 'food'"
         >
-          <text class="range-icon">🐾</text>
-          <text class="range-text">单只宠物</text>
-          <text class="range-desc">选择指定宠物</text>
+          <text class="option-icon">🍽️</text>
+          <text class="option-text">喂食记录</text>
+        </view>
+        
+        <view 
+          class="option-card"
+          :class="{ active: dataType === 'health' }"
+          @click="dataType = 'health'"
+        >
+          <text class="option-icon">🏥</text>
+          <text class="option-text">健康记录</text>
+        </view>
+        
+        <view 
+          class="option-card"
+          :class="{ active: dataType === 'weight' }"
+          @click="dataType = 'weight'"
+        >
+          <text class="option-icon">⚖️</text>
+          <text class="option-text">体重记录</text>
+        </view>
+        
+        <view 
+          class="option-card"
+          :class="{ active: dataType === 'vaccine' }"
+          @click="dataType = 'vaccine'"
+        >
+          <text class="option-icon">💉</text>
+          <text class="option-text">疫苗记录</text>
+        </view>
+        
+        <view 
+          class="option-card"
+          :class="{ active: dataType === 'medication' }"
+          @click="dataType = 'medication'"
+        >
+          <text class="option-icon">💊</text>
+          <text class="option-text">用药记录</text>
         </view>
       </view>
     </view>
-
-    <!-- 选择宠物（单选时显示） -->
-    <view class="section" v-if="exportRange === 'single'">
-      <text class="section-title">选择宠物</text>
+    
+    <view class="form-section">
+      <view class="section-title">时间范围</view>
       
-      <picker :range="petNames" @change="onPetChange">
-        <view class="picker">
-          <text>{{ selectedPetName || '请选择宠物' }}</text>
-          <text class="arrow">›</text>
+      <view class="date-range">
+        <view class="date-item">
+          <text class="date-label">开始日期</text>
+          <picker mode="date" :value="startDateStr" @change="onStartDateChange">
+            <view class="date-picker">
+              <text>{{ startDateStr || '选择开始日期' }}</text>
+            </view>
+          </picker>
         </view>
-      </picker>
-    </view>
-
-    <!-- 导出格式选择 -->
-    <view class="section">
-      <text class="section-title">导出格式</text>
+        
+        <view class="date-item">
+          <text class="date-label">结束日期</text>
+          <picker mode="date" :value="endDateStr" @change="onEndDateChange">
+            <view class="date-picker">
+              <text>{{ endDateStr || '选择结束日期' }}</text>
+            </view>
+          </picker>
+        </view>
+      </view>
       
-      <view class="format-options">
+      <view class="quick-dates">
+        <view class="quick-tag" @click="setDateRange(7)">最近 7 天</view>
+        <view class="quick-tag" @click="setDateRange(30)">最近 30 天</view>
+        <view class="quick-tag" @click="setDateRange(90)">最近 90 天</view>
+        <view class="quick-tag" @click="setDateRange('all')">全部</view>
+      </view>
+    </view>
+    
+    <view class="form-section">
+      <view class="section-title">导出格式</view>
+      
+      <view class="format-selector">
         <view 
-          class="format-option" 
-          :class="{ active: exportFormat === 'pdf' }"
-          @click="exportFormat = 'pdf'"
+          class="format-btn"
+          :class="{ active: format === 'excel' }"
+          @click="format = 'excel'"
         >
-          <text class="format-icon">📄</text>
-          <text class="format-text">PDF 报告</text>
-          <text class="format-desc">适合打印和分享</text>
+          <text class="format-icon">📗</text>
+          <text class="format-text">Excel</text>
         </view>
         
         <view 
-          class="format-option" 
-          :class="{ active: exportFormat === 'excel' }"
-          @click="exportFormat = 'excel'"
+          class="format-btn"
+          :class="{ active: format === 'pdf' }"
+          @click="format = 'pdf'"
         >
-          <text class="format-icon">📊</text>
-          <text class="format-text">Excel 表格</text>
-          <text class="format-desc">适合数据分析</text>
+          <text class="format-icon">📕</text>
+          <text class="format-text">PDF</text>
         </view>
       </view>
     </view>
-
-    <!-- 导出内容选择 -->
-    <view class="section">
-      <text class="section-title">导出内容</text>
-      
-      <view class="content-options">
-        <view 
-          class="content-option" 
-          :class="{ checked: content.basic }"
-          @click="toggleContent('basic')"
-        >
-          <text class="checkbox">{{ content.basic ? '☑️' : '⬜' }}</text>
-          <text class="content-text">基本信息</text>
-        </view>
-        
-        <view 
-          class="content-option" 
-          :class="{ checked: content.weight }"
-          @click="toggleContent('weight')"
-        >
-          <text class="checkbox">{{ content.weight ? '☑️' : '⬜' }}</text>
-          <text class="content-text">体重记录</text>
-        </view>
-        
-        <view 
-          class="content-option" 
-          :class="{ checked: content.health }"
-          @click="toggleContent('health')"
-        >
-          <text class="checkbox">{{ content.health ? '☑️' : '⬜' }}</text>
-          <text class="content-text">健康记录</text>
-        </view>
-        
-        <view 
-          class="content-option" 
-          :class="{ checked: content.vaccine }"
-          @click="toggleContent('vaccine')"
-        >
-          <text class="checkbox">{{ content.vaccine ? '☑️' : '⬜' }}</text>
-          <text class="content-text">疫苗记录</text>
-        </view>
-        
-        <view 
-          class="content-option" 
-          :class="{ checked: content.deworming }"
-          @click="toggleContent('deworming')"
-        >
-          <text class="checkbox">{{ content.deworming ? '☑️' : '⬜' }}</text>
-          <text class="content-text">驱虫记录</text>
-        </view>
-        
-        <view 
-          class="content-option" 
-          :class="{ checked: content.food }"
-          @click="toggleContent('food')"
-        >
-          <text class="checkbox">{{ content.food ? '☑️' : '⬜' }}</text>
-          <text class="content-text">粮食记录</text>
-        </view>
+    
+    <view class="form-section">
+      <view class="section-title">选择宠物</view>
+      <view class="pet-selector-info">
+        <text class="info-text">将导出您所有宠物的数据</text>
+        <text class="pet-count">共 {{ petCount }} 只宠物</text>
       </view>
     </view>
-
-    <!-- 导出按钮 -->
-    <view class="export-actions">
-      <button class="btn-export" @click="exportData" :disabled="exporting">
-        <text class="export-icon">{{ exporting ? '⏳' : '📤' }}</text>
-        <text class="export-text">{{ exporting ? '导出中...' : '开始导出' }}</text>
+    
+    <view class="action-section">
+      <button class="btn-export" @click="handleExport" :disabled="exporting">
+        <text v-if="!exporting">🚀 开始导出</text>
+        <text v-else>导出中...</text>
       </button>
       
-      <button class="btn-share" @click="shareData" :disabled="!canShare">
-        <text class="share-icon">🔗</text>
-        <text class="share-text">分享数据</text>
+      <button class="btn-history" @click="goToHistory">
+        <text>📋 查看导出历史</text>
       </button>
-    </view>
-
-    <!-- 导出说明 -->
-    <view class="tips">
-      <text class="tips-title">💡 导出说明</text>
-      <text class="tips-text">• PDF 格式：适合打印和分享给兽医</text>
-      <text class="tips-text">• Excel 格式：适合数据分析和备份</text>
-      <text class="tips-text">• 导出文件将保存到手机存储</text>
-      <text class="tips-text">• 大型导出可能需要几分钟</text>
     </view>
   </view>
 </template>
 
 <script>
 export default {
+  name: 'Export',
   data() {
     return {
-      exportRange: 'all',
-      exportFormat: 'pdf',
-      selectedPetIndex: 0,
-      pets: [],
-      content: {
-        basic: true,
-        weight: true,
-        health: true,
-        vaccine: true,
-        deworming: true,
-        food: true
-      },
+      dataType: 'all',
+      startDateStr: '',
+      endDateStr: '',
+      startDate: null,
+      endDate: null,
+      format: 'excel',
       exporting: false,
-      canShare: false,
-      exportedData: null
-    }
-  },
-  computed: {
-    petNames() {
-      return this.pets.map(p => p.name)
-    },
-    selectedPetName() {
-      return this.pets[this.selectedPetIndex]?.name || ''
-    }
+      petCount: 0
+    };
   },
   onLoad() {
-    this.loadPets()
+    this.loadPetCount();
+    // 默认最近 30 天
+    this.setDateRange(30);
   },
   methods: {
-    async loadPets() {
+    // 加载宠物数量
+    async loadPetCount() {
       try {
-        const userStr = uni.getStorageSync('user')
-        const user = JSON.parse(userStr)
-        
         const res = await uniCloud.callFunction({
-          name: 'pet-list',
-          data: { familyId: user.familyId }
-        })
+          name: 'get-pet-list'
+        });
         
         if (res.result.code === 200) {
-          this.pets = res.result.data.pets || []
-          if (this.pets.length > 0) {
-            this.selectedPetIndex = 0
-          }
+          this.petCount = res.result.data.total || 0;
         }
-      } catch (e) {
-        console.error('加载宠物列表失败:', e)
+      } catch (error) {
+        console.error('Load pet count error:', error);
       }
     },
     
-    onPetChange(e) {
-      this.selectedPetIndex = e.detail.value
-    },
-    
-    toggleContent(type) {
-      this.content[type] = !this.content[type]
-    },
-    
-    async exportData() {
-      if (this.exportRange === 'single' && !this.pets[this.selectedPetIndex]) {
-        uni.showToast({ title: '请选择宠物', icon: 'none' })
-        return
-      }
+    // 设置快捷日期范围
+    setDateRange(days) {
+      const now = new Date();
+      this.endDate = now.getTime();
+      this.endDateStr = this.formatDate(now);
       
-      const hasContent = Object.values(this.content).some(v => v)
-      if (!hasContent) {
-        uni.showToast({ title: '请至少选择一项内容', icon: 'none' })
-        return
+      if (days === 'all') {
+        this.startDate = null;
+        this.startDateStr = '';
+      } else {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+        this.startDate = startDate.getTime();
+        this.startDateStr = this.formatDate(startDate);
       }
+    },
+    
+    // 格式化日期
+    formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+    
+    // 开始日期选择
+    onStartDateChange(e) {
+      this.startDateStr = e.detail.value;
+      this.startDate = new Date(e.detail.value).getTime();
+    },
+    
+    // 结束日期选择
+    onEndDateChange(e) {
+      this.endDateStr = e.detail.value;
+      this.endDate = new Date(e.detail.value).getTime();
+    },
+    
+    // 执行导出
+    async handleExport() {
+      if (this.exporting) return;
       
-      this.exporting = true
+      this.exporting = true;
       
       try {
-        const userStr = uni.getStorageSync('user')
-        const user = JSON.parse(userStr)
+        uni.showLoading({ title: '正在导出...' });
         
-        // 准备导出数据
-        const exportData = {
-          exportAt: new Date().toISOString(),
-          format: this.exportFormat,
-          range: this.exportRange,
-          pet: this.exportRange === 'single' ? this.pets[this.selectedPetIndex] : null,
-          content: this.content,
-          data: {}
-        }
+        const res = await uniCloud.callFunction({
+          name: 'export-data',
+          data: {
+            data_type: this.dataType,
+            start_date: this.startDate,
+            end_date: this.endDate,
+            format: this.format
+          }
+        });
         
-        // 加载数据
-        if (this.content.basic) {
-          exportData.data.basic = this.exportRange === 'single' 
-            ? this.pets[this.selectedPetIndex]
-            : this.pets
-        }
+        uni.hideLoading();
         
-        // 导出文件
-        if (this.exportFormat === 'pdf') {
-          await this.exportToPDF(exportData)
+        if (res.result.code === 200) {
+          const data = res.result.data;
+          
+          uni.showModal({
+            title: '导出成功',
+            content: `共导出 ${this.formatRecordCount(data.record_count)} 条记录\n文件名：${data.file_name}`,
+            showCancel: false,
+            confirmText: '好的'
+          });
+          
+          // 这里可以添加下载逻辑
+          // 实际使用中，需要将数据转换为文件并下载
+          
         } else {
-          await this.exportToExcel(exportData)
-        }
-        
-        this.exportedData = exportData
-        this.canShare = true
-        
-        uni.showToast({ 
-          title: '导出成功', 
-          icon: 'success',
-          duration: 2000
-        })
-      } catch (e) {
-        console.error('导出数据失败:', e)
-        uni.showToast({ title: '导出失败，请重试', icon: 'none' })
-      } finally {
-        this.exporting = false
-      }
-    },
-    
-    async exportToPDF(data) {
-      // 生成 PDF 内容
-      const content = this.generatePDFContent(data)
-      
-      // 使用 uni-app 的打印功能或第三方服务
-      // 这里模拟导出成功
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      uni.showToast({ 
-        title: 'PDF 已生成', 
-        icon: 'success'
-      })
-    },
-    
-    async exportToExcel(data) {
-      // 生成 Excel 内容
-      const content = this.generateExcelContent(data)
-      
-      // 使用 uni-app 的文件系统保存
-      // 这里模拟导出成功
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      uni.showToast({ 
-        title: 'Excel 已生成', 
-        icon: 'success'
-      })
-    },
-    
-    generatePDFContent(data) {
-      // 生成 PDF 内容
-      let content = `PetsLog 数据导出报告\n`
-      content += `导出时间：${data.exportAt}\n\n`
-      
-      if (data.data.basic) {
-        content += `=== 基本信息 ===\n`
-        if (Array.isArray(data.data.basic)) {
-          data.data.basic.forEach(pet => {
-            content += `${pet.name} - ${pet.breed}\n`
-          })
-        } else {
-          content += `${data.data.basic.name} - ${data.data.basic.breed}\n`
-        }
-        content += `\n`
-      }
-      
-      return content
-    },
-    
-    generateExcelContent(data) {
-      // 生成 Excel CSV 格式内容
-      let csv = '\uFEFF' // BOM for UTF-8
-      
-      if (data.data.basic && Array.isArray(data.data.basic)) {
-        csv += '宠物姓名，品种，性别，年龄，毛色\n'
-        data.data.basic.forEach(pet => {
-          csv += `${pet.name},${pet.breed},${pet.gender},${pet.age},${pet.color}\n`
-        })
-        csv += '\n'
-      }
-      
-      return csv
-    },
-    
-    shareData() {
-      if (!this.exportedData) {
-        uni.showToast({ title: '请先导出数据', icon: 'none' })
-        return
-      }
-      
-      uni.showActionSheet({
-        itemList: ['微信好友', '微信朋友圈', 'QQ 好友', '复制链接'],
-        success: (res) => {
-          uni.showToast({ 
-            title: '分享功能开发中', 
+          uni.showToast({
+            title: res.result.message || '导出失败',
             icon: 'none'
-          })
+          });
         }
-      })
+      } catch (error) {
+        uni.hideLoading();
+        console.error('Export error:', error);
+        uni.showToast({
+          title: '导出失败，请重试',
+          icon: 'none'
+        });
+      } finally {
+        this.exporting = false;
+      }
+    },
+    
+    // 格式化记录数量显示
+    formatRecordCount(count) {
+      const total = Object.values(count).reduce((sum, num) => sum + num, 0);
+      return total;
+    },
+    
+    // 跳转到导出历史
+    goToHistory() {
+      uni.navigateTo({
+        url: '/pages/backup-history/backup-history'
+      });
     }
   }
-}
+};
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .container {
   min-height: 100vh;
-  background: #f8fafc;
-  padding-bottom: 80px;
+  background: #f5f5f5;
+  padding-bottom: 120rpx;
 }
 
 .header {
-  padding: 20px 16px 16px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx 30rpx 60rpx;
+  
+  .title {
+    display: block;
+    font-size: 40rpx;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 10rpx;
+  }
+  
+  .subtitle {
+    display: block;
+    font-size: 26rpx;
+    color: rgba(255,255,255,0.8);
+  }
 }
 
-.header .title {
-  display: block;
-  font-size: 24px;
-  font-weight: bold;
-  color: #ffffff;
-  margin-bottom: 4px;
+.form-section {
+  background: white;
+  margin: 20rpx 30rpx;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  
+  .section-title {
+    font-size: 30rpx;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20rpx;
+  }
 }
 
-.header .subtitle {
-  display: block;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.section {
-  background: #ffffff;
-  margin: 16px;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.section-title {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 12px;
-}
-
-.range-options,
-.format-options {
+.option-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+  
+  .option-card {
+    background: #f9f9f9;
+    border-radius: 12rpx;
+    padding: 20rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10rpx;
+    border: 2rpx solid transparent;
+    
+    &.active {
+      background: #f0f4ff;
+      border-color: #667eea;
+    }
+    
+    .option-icon {
+      font-size: 40rpx;
+    }
+    
+    .option-text {
+      font-size: 22rpx;
+      color: #666;
+    }
+  }
 }
 
-.range-option,
-.format-option {
+.date-range {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  
+  .date-item {
+    flex: 1;
+    
+    .date-label {
+      display: block;
+      font-size: 24rpx;
+      color: #999;
+      margin-bottom: 10rpx;
+    }
+    
+    .date-picker {
+      background: #f5f5f5;
+      border-radius: 8rpx;
+      padding: 20rpx;
+      font-size: 26rpx;
+      color: #333;
+    }
+  }
 }
 
-.range-option.active,
-.format-option.active {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
+.quick-dates {
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+  
+  .quick-tag {
+    background: #f0f4ff;
+    color: #667eea;
+    font-size: 24rpx;
+    padding: 10rpx 20rpx;
+    border-radius: 20rpx;
+  }
 }
 
-.range-icon,
-.format-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
+.format-selector {
+  display: flex;
+  gap: 20rpx;
+  
+  .format-btn {
+    flex: 1;
+    background: #f9f9f9;
+    border-radius: 12rpx;
+    padding: 30rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10rpx;
+    border: 2rpx solid transparent;
+    
+    &.active {
+      background: #f0f4ff;
+      border-color: #667eea;
+    }
+    
+    .format-icon {
+      font-size: 48rpx;
+    }
+    
+    .format-text {
+      font-size: 26rpx;
+      color: #666;
+    }
+  }
 }
 
-.range-text,
-.format-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 4px;
-}
-
-.range-desc,
-.format-desc {
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.picker {
+.pet-selector-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
-  background: #f8fafc;
-  border-radius: 8px;
+  
+  .info-text {
+    font-size: 26rpx;
+    color: #666;
+  }
+  
+  .pet-count {
+    font-size: 26rpx;
+    color: #667eea;
+    font-weight: 600;
+  }
 }
 
-.picker text {
-  font-size: 15px;
-  color: #64748b;
-}
-
-.picker .arrow {
-  font-size: 20px;
-  color: #cbd5e1;
-}
-
-.content-options {
+.action-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx 30rpx;
+  background: white;
+  box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.content-option {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 8px;
-}
-
-.content-option.checked .checkbox {
-  color: #667eea;
-}
-
-.checkbox {
-  font-size: 20px;
-}
-
-.content-text {
-  font-size: 14px;
-  color: #1e293b;
-}
-
-.export-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 16px;
-}
-
-.btn-export,
-.btn-share {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  border: none;
-}
-
-.btn-export {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
-}
-
-.btn-export:disabled {
-  opacity: 0.6;
-}
-
-.btn-share {
-  background: #ffffff;
-  color: #667eea;
-  border: 2px solid #667eea;
-}
-
-.btn-share:disabled {
-  opacity: 0.4;
-}
-
-.export-icon,
-.share-icon {
-  font-size: 20px;
-}
-
-.tips {
-  background: #ffffff;
-  margin: 16px;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.tips-title {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 12px;
-}
-
-.tips-text {
-  display: block;
-  font-size: 13px;
-  color: #64748b;
-  line-height: 1.8;
-  margin-bottom: 4px;
+  gap: 16rpx;
+  
+  .btn-export {
+    width: 100%;
+    height: 80rpx;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 30rpx;
+    border-radius: 40rpx;
+    border: none;
+    
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+  
+  .btn-history {
+    width: 100%;
+    height: 80rpx;
+    background: #f5f5f5;
+    color: #666;
+    font-size: 30rpx;
+    border-radius: 40rpx;
+    border: none;
+  }
 }
 </style>

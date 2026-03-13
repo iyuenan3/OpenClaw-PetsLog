@@ -3,6 +3,9 @@
     <!-- 提醒卡片 -->
     <reminder-card />
     
+    <!-- 宠物切换器 -->
+    <pet-switcher :refreshKey="refreshKey" @pet-switched="onPetSwitched" />
+    
     <view class="header">
       <view class="user-info" v-if="user">
         <text class="welcome">欢迎，{{ user.username }}</text>
@@ -91,10 +94,12 @@
 
 <script>
 import ReminderCard from '@/components/ReminderCard.vue';
+import PetSwitcher from '@/components/PetSwitcher.vue';
 
 export default {
   components: {
-    ReminderCard
+    ReminderCard,
+    PetSwitcher
   },
   data() {
     return {
@@ -102,7 +107,9 @@ export default {
       user: null,
       loading: false,
       searchText: '',
-      filterSpecies: 'all' // all, cat, dog
+      filterSpecies: 'all', // all, cat, dog
+      refreshKey: 0,
+      currentPetId: null
     }
   },
   computed: {
@@ -183,6 +190,12 @@ export default {
           }
         }
       });
+    },
+    onPetSwitched(pet) {
+      // 宠物切换后刷新列表
+      this.refreshKey++;
+      this.currentPetId = pet._id;
+      this.loadPets();
     }
   }
 }

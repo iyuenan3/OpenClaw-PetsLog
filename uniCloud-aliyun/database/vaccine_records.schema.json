@@ -9,7 +9,7 @@
   },
   "properties": {
     "_id": { "description": "ID，系统自动生成" },
-    "petId": { "bsonType": "string", "description": "宠物 ID" },
+    "petId": { "bsonType": "string", "description": "宠物 ID", "index": true },
     "name": { "bsonType": "string", "description": "疫苗名称" },
     "type": { "bsonType": "string", "description": "疫苗类型" },
     "brand": { "bsonType": "string", "description": "品牌" },
@@ -17,5 +17,15 @@
     "vaccinatedAt": { "bsonType": "timestamp", "description": "接种日期" },
     "nextReminder": { "bsonType": "timestamp", "description": "下次提醒日期" },
     "remindEnabled": { "bsonType": "bool", "description": "是否启用提醒" }
+  },
+  "indexes": {
+    "petId_index": {
+      "keys": { "petId": 1 },
+      "background": true
+    },
+    "petId_vaccinatedAt_index": {
+      "keys": { "petId": 1, "vaccinatedAt": -1 },
+      "background": true
+    }
   }
 }

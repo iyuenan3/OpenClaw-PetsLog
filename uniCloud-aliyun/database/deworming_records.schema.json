@@ -9,12 +9,22 @@
   },
   "properties": {
     "_id": { "description": "ID，系统自动生成" },
-    "petId": { "bsonType": "string", "description": "宠物 ID" },
+    "petId": { "bsonType": "string", "description": "宠物 ID", "index": true },
     "type": { "bsonType": "string", "description": "类型", "enum": ["internal", "external"] },
     "brand": { "bsonType": "string", "description": "品牌" },
     "product": { "bsonType": "string", "description": "产品型号" },
     "usedAt": { "bsonType": "timestamp", "description": "使用日期" },
     "nextReminder": { "bsonType": "timestamp", "description": "下次提醒日期" },
     "remindEnabled": { "bsonType": "bool", "description": "是否启用提醒" }
+  },
+  "indexes": {
+    "petId_index": {
+      "keys": { "petId": 1 },
+      "background": true
+    },
+    "petId_usedAt_index": {
+      "keys": { "petId": 1, "usedAt": -1 },
+      "background": true
+    }
   }
 }
