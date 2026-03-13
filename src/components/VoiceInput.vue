@@ -185,25 +185,47 @@ export default {
     async recognizeWeChat(filePath) {
       // #ifdef MP-WEIXIN
       try {
-        // 注意：微信语音识别需要后端支持
-        // 这里提供一个示例，实际使用需要配置云开发或自己的服务器
         uni.showLoading({ title: '识别中...' })
         
-        // 如果需要上传到服务器识别，可以在这里处理
-        // uni.uploadFile({ ... })
+        // 调用云函数进行语音识别
+        const result = await uniCloud.callFunction({
+          name: 'voice-recognition',
+          data: {
+            audioPath: filePath
+          }
+        })
         
         uni.hideLoading()
         
-        // 临时方案：直接返回文件路径，由父组件处理
+        if (result.code === 200) {
+          // 识别成功，返回文本
+          this.$emit('result', result.data.text)
+        } else {
+          // 识别失败，返回音频路径作为备选
+          console.warn('[VoiceInput] 语音识别失败，返回音频路径:', result.message)
+          this.$emit('result', {
+            type: 'audio',
+            path: filePath
+          })
+          uni.showToast({
+            title: result.message || '识别失败',
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        console.error('[VoiceInput] 语音识别失败:', error)
+        this.$emit('error', error)
+        uni.hideLoading()
+        
+        // 失败时返回音频路径
         this.$emit('result', {
           type: 'audio',
           path: filePath
         })
-      } catch (error) {
-        console.error('[VoiceInput] 语音识别失败:', error)
-        this.$emit('error', error)
-      } finally {
-        uni.hideLoading()
+        uni.showToast({
+          title: '识别失败，已保存录音',
+          icon: 'none'
+        })
       }
       // #endif
     }

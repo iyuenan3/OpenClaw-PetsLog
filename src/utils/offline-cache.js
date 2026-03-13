@@ -1,12 +1,44 @@
 /**
  * 离线数据缓存工具
  * 支持在无网络时暂存数据，网络恢复后自动同步
+ * 数据加密存储，保护隐私
  */
 
 import { isNetworkConnected, waitForNetwork } from './network'
 
 const CACHE_KEY = 'petslog_offline_cache'
 const MAX_CACHE_SIZE = 100
+
+/**
+ * 简单的 XOR 加密（用于离线缓存）
+ * 注意：这不是强加密，仅用于防止明文存储
+ * 生产环境建议使用更安全的加密方案
+ */
+const ENCRYPTION_KEY = 'petslog-cache-key-2026'
+
+function xorEncrypt(text) {
+  let result = ''
+  for (let i = 0; i < text.length; i++) {
+    const charCode = text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length)
+    result += String.fromCharCode(charCode)
+  }
+  return btoa(unescape(encodeURIComponent(result)))
+}
+
+function xorDecrypt(encoded) {
+  try {
+    const text = decodeURIComponent(escape(atob(encoded)))
+    let result = ''
+    for (let i = 0; i < text.length; i++) {
+      const charCode = text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length)
+      result += String.fromCharCode(charCode)
+    }
+    return result
+  } catch (error) {
+    console.error('[OfflineCache] 解密失败:', error)
+    return null
+  }
+}
 
 /**
  * 缓存数据结构
@@ -21,12 +53,24 @@ const MAX_CACHE_SIZE = 100
  */
 
 /**
- * 获取离线缓存
+ * 获取离线缓存（解密读取）
  */
 export function getOfflineCache() {
   try {
-    const cache = uni.getStorageSync(CACHE_KEY)
-    return cache ? JSON.parse(cache) : { timestamp: Date.now(), actions: [] }
+    const encrypted = uni.getStorageSync(CACHE_KEY)
+    if (!encrypted) {
+      return { timestamp: Date.now(), actions: [] }
+    }
+    
+    // 解密
+    const decrypted = xorDecrypt(encrypted)
+    if (!decrypted) {
+      // 解密失败，清除旧缓存
+      console.warn('[OfflineCache] 解密失败，清除旧缓存')
+      return { timestamp: Date.now(), actions: [] }
+    }
+    
+    return JSON.parse(decrypted)
   } catch (error) {
     console.error('[OfflineCache] 读取缓存失败:', error)
     return { timestamp: Date.now(), actions: [] }
@@ -34,7 +78,7 @@ export function getOfflineCache() {
 }
 
 /**
- * 保存离线缓存
+ * 保存离线缓存（加密存储）
  */
 function saveOfflineCache(cache) {
   try {
@@ -43,7 +87,11 @@ function saveOfflineCache(cache) {
       cache.actions = cache.actions.slice(-MAX_CACHE_SIZE)
     }
     cache.timestamp = Date.now()
-    uni.setStorageSync(CACHE_KEY, JSON.stringify(cache))
+    
+    // 加密后存储
+    const cacheJson = JSON.stringify(cache)
+    const encrypted = xorEncrypt(cacheJson)
+    uni.setStorageSync(CACHE_KEY, encrypted)
   } catch (error) {
     console.error('[OfflineCache] 保存缓存失败:', error)
   }
