@@ -25,11 +25,25 @@ jobs:
     - name: Install Playwright
       run: npx playwright install --with-deps chromium
     
+    - name: Create auth directory
+      run: mkdir -p tests/e2e/.auth
+    
     - name: Start dev server
       run: |
         npm run dev:h5 > dev-server.log 2>&1 &
-        sleep 15
-        curl -s http://localhost:5173 || exit 1
+        echo "⏳ 等待开发服务器启动..."
+        for i in {1..60}; do
+          if curl -s http://localhost:5173 > /dev/null 2>&1; then
+            echo "✅ 开发服务器已启动 (尝试 $i 次)"
+            break
+          fi
+          if [ $i -eq 60 ]; then
+            echo "❌ 开发服务器启动失败"
+            cat dev-server.log
+            exit 1
+          fi
+          sleep 2
+        done
     
     - name: Run E2E tests (32 tests)
       run: npx playwright test --project=chromium --reporter=list

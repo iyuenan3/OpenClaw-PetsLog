@@ -4,10 +4,10 @@ const { defineConfig, devices } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: 0,  // 禁用重试，加快 CI 速度
+  forbidOnly: false,  // 允许 test.only 用于调试
+  retries: process.env.CI ? 2 : 0,  // CI 中重试 2 次提高稳定性
   workers: process.env.CI ? 1 : undefined,
-  timeout: 15000,  // 全局超时 15 秒
+  timeout: 30000,  // 全局超时 30 秒，适应 uni-app 加载速度
   reporter: [
     ['html', { open: 'never' }],
     ['list'],

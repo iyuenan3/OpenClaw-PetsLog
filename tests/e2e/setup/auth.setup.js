@@ -1,9 +1,18 @@
 // @ts-check
 const { test: setup, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
 
 // 全局认证设置 - 创建一个测试用户并保存登录状态
 setup('authenticate as test user', async ({ page }) => {
   console.log('🔐 开始认证流程...');
+  
+  // 确保认证目录存在
+  const authDir = path.join(__dirname, '..', '.auth');
+  if (!fs.existsSync(authDir)) {
+    fs.mkdirSync(authDir, { recursive: true });
+    console.log(`📁 创建认证目录：${authDir}`);
+  }
   
   // 访问登录页面
   await page.goto('/');
@@ -16,49 +25,43 @@ setup('authenticate as test user', async ({ page }) => {
   await page.screenshot({ path: 'test-results/debug-login-page.png' });
   console.log('📸 已截图：test-results/debug-login-page.png');
   
-  // 获取页面 HTML 用于调试
-  const html = await page.content();
-  console.log('📄 页面 HTML 长度:', html.length);
+  // 使用更可靠的选择器策略
+  const usernameInput = page.getByPlaceholder(/用户名|账号|手机号|请输入用户名/).or(
+    page.locator('input[type="text"]').first()
+  );
+  const passwordInput = page.getByPlaceholder(/密码|请输入密码/).or(
+    page.locator('input[type="password"]').first()
+  );
   
-  // 尝试直接登录（如果用户已存在）
-  // uni-app 编译后 input 在 uni-input 内部，需要找到真实的 input 元素
-  // 使用 CSS 选择器找到 uni-input 内部的 input
-  const usernameInput = page.locator('uni-input#username-input input').or(page.locator('#username-input input')).or(page.locator('input[type="text"]')).first();
-  const passwordInput = page.locator('uni-input#password-input input').or(page.locator('#password-input input')).or(page.locator('input[type="password"]')).first();
-  
-  // 登录按钮使用 CSS class 选择器（更可靠）
-  const loginBtn = page.locator('.btn-primary').or(page.locator('button:has-text("登录")')).first();
-  const registerBtn = page.locator('.btn-info').or(page.locator('button:has-text("注册")')).first();
+  // 登录按钮
+  const loginBtn = page.getByRole('button', { name: /登录|登录/ }).or(
+    page.locator('button:has-text("登录")').or(page.locator('.btn-primary')).first()
+  );
+  const registerBtn = page.getByRole('button', { name: /注册|注册账号/ }).or(
+    page.locator('button:has-text("注册")').or(page.locator('.btn-info')).first()
+  );
   
   console.log('⏳ 尝试填写用户名...');
   
-  // 先点击输入框获得焦点，然后使用 type 而不是 fill
-  await usernameInput.click();
-  await page.waitForTimeout(500);
-  await page.keyboard.type('testuser');
-  
-  await passwordInput.click();
-  await page.waitForTimeout(500);
-  await page.keyboard.type('Test123456');
+  // 使用 fill 而不是 type（更可靠）
+  await usernameInput.fill('testuser');
+  await passwordInput.fill('Test123456');
   
   console.log('⏳ 点击登录按钮...');
   await loginBtn.click();
   
-  // 等待登录结果
-  await page.waitForTimeout(3000);
-  
-  // 检查是否登录成功
-  const currentUrl = page.url();
-  console.log('📍 当前 URL:', currentUrl);
-  
-  if (currentUrl.includes('/pages/index/index')) {
+  // 等待登录结果 - 使用 URL 变化或页面元素判断
+  try {
+    await page.waitForURL(/\/pages\/index\/index/, { timeout: 10000 });
     console.log('✅ 用户已存在，直接登录成功');
     await page.context().storageState({ path: 'tests/e2e/.auth/user.json' });
     return;
+  } catch (e) {
+    console.log('⏳ 登录超时，可能用户不存在，尝试注册...');
   }
   
   // 登录失败，尝试注册
-  console.log('⏳ 登录失败，尝试注册新用户...');
+  console.log('⏳ 开始注册流程...');
   await page.goto('/');
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
@@ -68,45 +71,29 @@ setup('authenticate as test user', async ({ page }) => {
   await page.waitForTimeout(1000);
   
   // 填写注册信息
-  await usernameInput.click();
-  await page.waitForTimeout(500);
-  await page.keyboard.type('testuser');
+  await usernameInput.fill('testuser');
+  await passwordInput.fill('Test123456');
   
-  await passwordInput.click();
-  await page.waitForTimeout(500);
-  await page.keyboard.type('Test123456');
-  
-  // 注册只需要用户名和密码
   console.log('⏳ 点击注册按钮...');
   await registerBtn.click();
   
   // 等待注册完成
-  await page.waitForTimeout(3000);
-  
-  // 检查注册后是否自动登录
-  const afterRegisterUrl = page.url();
-  console.log('📍 注册后 URL:', afterRegisterUrl);
-  
-  if (afterRegisterUrl.includes('/pages/index/index')) {
+  try {
+    await page.waitForURL(/\/pages\/index\/index/, { timeout: 10000 });
     console.log('✅ 注册成功并已自动登录');
-  } else {
-    // 需要手动登录
+  } catch (e) {
+    // 注册后可能需要手动登录
     console.log('⏳ 注册完成，手动登录...');
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
     
-    await usernameInput.click();
-    await page.waitForTimeout(500);
-    await page.keyboard.type('testuser');
-    
-    await passwordInput.click();
-    await page.waitForTimeout(500);
-    await page.keyboard.type('Test123456');
+    await usernameInput.fill('testuser');
+    await passwordInput.fill('Test123456');
     
     console.log('⏳ 点击登录按钮...');
     await loginBtn.click();
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
   }
   
   // 保存登录状态
