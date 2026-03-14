@@ -9,7 +9,7 @@
   },
   "properties": {
     "_id": { "description": "ID，系统自动生成" },
-    "petId": { "bsonType": "string", "description": "宠物 ID" },
+    "petId": { "bsonType": "string", "description": "宠物 ID", "index": true },
     "symptom": { "bsonType": "string", "description": "症状" },
     "observation": { "bsonType": "string", "description": "观察记录" },
     "status": { "bsonType": "string", "description": "状态", "enum": ["observing", "treatment", "recovered"] },
@@ -18,6 +18,16 @@
       "bsonType": "array",
       "description": "附件 URL 数组",
       "items": { "bsonType": "string" }
+    }
+  },
+  "indexes": {
+    "petId_index": {
+      "keys": { "petId": 1 },
+      "background": true
+    },
+    "petId_recordedAt_index": {
+      "keys": { "petId": 1, "recordedAt": -1 },
+      "background": true
     }
   }
 }

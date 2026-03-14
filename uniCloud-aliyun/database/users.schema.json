@@ -12,6 +12,15 @@
     "username": { "bsonType": "string", "description": "用户名" },
     "passwordHash": { "bsonType": "string", "description": "密码哈希" },
     "familyId": { "bsonType": "string", "description": "家庭 ID" },
+    "pet_ids": { 
+      "bsonType": "array", 
+      "description": "用户绑定的宠物 ID 列表",
+      "items": { "bsonType": "string" }
+    },
+    "current_pet_id": { 
+      "bsonType": "string", 
+      "description": "当前选中的宠物 ID" 
+    },
     "createdAt": { "bsonType": "timestamp", "description": "创建时间" }
   }
 }

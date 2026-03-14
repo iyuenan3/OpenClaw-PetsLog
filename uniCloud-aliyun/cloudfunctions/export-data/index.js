@@ -1,194 +1,163 @@
 /**
  * 导出数据云函数
+ * 支持导出 Excel/PDF 格式
  * @param {Object} event
- * @param {string} event.familyId - 家庭 ID
- * @param {string} event.petId - 宠物 ID（可选）
- * @param {string} event.format - 导出格式：pdf/excel
- * @param {Object} event.content - 导出内容配置
+ * @param {string} event.data_type - 数据类型：all, food, health, weight, vaccine, deworming, medication
+ * @param {number} event.start_date - 开始日期时间戳
+ * @param {number} event.end_date - 结束日期时间戳
+ * @param {string} event.format - 导出格式：excel, pdf
+ * @param {Array} event.pet_ids - 宠物 ID 列表（可选）
  */
 exports.main = async (event, context) => {
-  const { familyId, petId, format = 'pdf', content = {} } = event;
+  const { data_type, start_date, end_date, format, pet_ids } = event;
   
-  if (!familyId) {
+  // 获取当前登录用户信息
+  const uid = context.auth?.uid;
+  
+  if (!uid) {
+    return {
+      code: 401,
+      message: '未登录'
+    };
+  }
+  
+  if (!data_type || !format) {
     return {
       code: 400,
-      message: 'familyId 为必填项'
+      message: '参数错误：需要 data_type 和 format'
     };
   }
   
   const db = uniCloud.database();
   
   try {
-    const exportData = {
-      exportAt: new Date().toISOString(),
+    // 1. 获取用户信息
+    const userResult = await db.collection('users').doc(uid).get();
+    
+    if (!userResult.data || userResult.data.length === 0) {
+      return {
+        code: 404,
+        message: '用户不存在'
+      };
+    }
+    
+    const user = userResult.data[0];
+    const userPetIds = user.pet_ids || [];
+    
+    // 2. 确定要导出的宠物
+    const exportPetIds = pet_ids && pet_ids.length > 0 ? pet_ids : userPetIds;
+    
+    if (exportPetIds.length === 0) {
+      return {
+        code: 400,
+        message: '没有可导出的宠物数据'
+      };
+    }
+    
+    // 3. 收集数据
+    const exportData = {};
+    
+    // 数据获取函数
+    async function fetchCollection(collectionName, petIdField) {
+      const query = db.collection(collectionName).where({
+        [petIdField]: { $in: exportPetIds }
+      });
+      
+      if (start_date) {
+        // 根据不同集合的日期字段查询
+        const dateField = collectionName === 'medication_records' ? 'startDate' : 
+                         collectionName === 'food_records' ? 'startDate' : 'recordedAt';
+        query.gte(dateField, start_date);
+      }
+      
+      if (end_date) {
+        const dateField = collectionName === 'medication_records' ? 'startDate' : 
+                         collectionName === 'food_records' ? 'startDate' : 'recordedAt';
+        query.lte(dateField, end_date);
+      }
+      
+      const result = await query.get();
+      return result.data || [];
+    }
+    
+    // 根据类型获取数据
+    if (data_type === 'all' || data_type === 'food') {
+      exportData.food = await fetchCollection('food_records', 'petId');
+    }
+    
+    if (data_type === 'all' || data_type === 'health') {
+      exportData.health = await fetchCollection('health_records', 'petId');
+    }
+    
+    if (data_type === 'all' || data_type === 'weight') {
+      exportData.weight = await fetchCollection('weight_records', 'petId');
+    }
+    
+    if (data_type === 'all' || data_type === 'vaccine') {
+      exportData.vaccine = await fetchCollection('vaccine_records', 'petId');
+    }
+    
+    if (data_type === 'all' || data_type === 'deworming') {
+      exportData.deworming = await fetchCollection('deworming_records', 'petId');
+    }
+    
+    if (data_type === 'all' || data_type === 'medication') {
+      exportData.medication = await fetchCollection('medication_records', 'petId');
+    }
+    
+    // 4. 获取宠物信息用于显示
+    const petsResult = await db.collection('pets')
+      .where({ _id: { $in: exportPetIds } })
+      .get();
+    exportData.pets = petsResult.data || [];
+    
+    // 5. 生成文件（这里返回数据，实际文件生成在前端或使用云存储）
+    // 由于 uniCloud 限制，这里返回数据让前端处理或使用 OSS
+    
+    const fileName = `petslog_export_${Date.now()}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+    
+    // 创建备份记录
+    const backupRecord = {
+      user_id: uid,
+      file_name: fileName,
+      file_url: '', // 待上传后填充
+      file_size: 0,
+      type: 'export',
+      data_type: data_type,
       format: format,
-      familyId: familyId,
-      pets: [],
-      records: {}
+      start_date: start_date || null,
+      end_date: end_date || null,
+      status: 'completed',
+      created_at: Date.now(),
+      expires_at: Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 天后过期
     };
     
-    // 获取宠物列表
-    const petQuery = petId ? { _id: petId, familyId } : { familyId };
-    const petsRes = await db.collection('pets')
-      .where(petQuery)
-      .get();
+    const insertResult = await db.collection('backups').add(backupRecord);
     
-    exportData.pets = petsRes.data;
-    
-    // 获取各类记录
-    if (content.weight !== false) {
-      const petIds = petsRes.data.map(p => p._id);
-      const weightRes = await db.collection('weight_records')
-        .where({ petId: db.command.in(petIds) })
-        .orderBy('recordedAt', 'desc')
-        .limit(100)
-        .get();
-      exportData.records.weight = weightRes.data;
-    }
-    
-    if (content.health !== false) {
-      const petIds = petsRes.data.map(p => p._id);
-      const healthRes = await db.collection('health_records')
-        .where({ petId: db.command.in(petIds) })
-        .orderBy('recordedAt', 'desc')
-        .limit(100)
-        .get();
-      exportData.records.health = healthRes.data;
-    }
-    
-    if (content.vaccine !== false) {
-      const petIds = petsRes.data.map(p => p._id);
-      const vaccineRes = await db.collection('vaccine_records')
-        .where({ petId: db.command.in(petIds) })
-        .orderBy('vaccinatedAt', 'desc')
-        .limit(100)
-        .get();
-      exportData.records.vaccine = vaccineRes.data;
-    }
-    
-    if (content.deworming !== false) {
-      const petIds = petsRes.data.map(p => p._id);
-      const dewormingRes = await db.collection('deworming_records')
-        .where({ petId: db.command.in(petIds) })
-        .orderBy('usedAt', 'desc')
-        .limit(100)
-        .get();
-      exportData.records.deworming = dewormingRes.data;
-    }
-    
-    if (content.food !== false) {
-      const petIds = petsRes.data.map(p => p._id);
-      const foodRes = await db.collection('food_records')
-        .where({ petId: db.command.in(petIds) })
-        .orderBy('startDate', 'desc')
-        .limit(100)
-        .get();
-      exportData.records.food = foodRes.data;
-    }
-    
-    // 生成导出文件
-    if (format === 'excel') {
-      return {
-        code: 200,
-        message: '导出成功',
-        data: {
-          format: 'excel',
-          content: generateExcel(exportData),
-          filename: `petslog_export_${Date.now()}.csv`
+    return {
+      code: 200,
+      message: '导出成功',
+      data: {
+        export_data: exportData,
+        file_name: fileName,
+        format: format,
+        backup_id: insertResult.id,
+        record_count: {
+          food: exportData.food?.length || 0,
+          health: exportData.health?.length || 0,
+          weight: exportData.weight?.length || 0,
+          vaccine: exportData.vaccine?.length || 0,
+          deworming: exportData.deworming?.length || 0,
+          medication: exportData.medication?.length || 0
         }
-      };
-    } else {
-      return {
-        code: 200,
-        message: '导出成功',
-        data: {
-          format: 'pdf',
-          content: exportData,
-          filename: `petslog_report_${Date.now()}.json`
-        }
-      };
-    }
-  } catch (e) {
-    console.error('导出数据失败:', e);
+      }
+    };
+    
+  } catch (error) {
+    console.error('export-data error:', error);
     return {
       code: 500,
-      message: '导出数据失败'
+      message: '服务器错误：' + error.message
     };
   }
 };
-
-/**
- * 生成 Excel CSV 格式
- */
-function generateExcel(data) {
-  let csv = '\uFEFF'; // BOM for UTF-8
-  
-  // 宠物基本信息
-  csv += '=== 宠物信息 ===\n';
-  csv += '姓名，品种，性别，年龄，毛色，绝育状态\n';
-  data.pets.forEach(pet => {
-    csv += `${pet.name},${pet.breed || ''},${pet.gender === 'male' ? '公' : pet.gender === 'female' ? '母' : ''},${pet.age || ''},${pet.color || ''},${pet.neutered ? '已绝育' : '未绝育'}\n`;
-  });
-  
-  // 体重记录
-  if (data.records.weight && data.records.weight.length > 0) {
-    csv += '\n=== 体重记录 ===\n';
-    csv += '宠物姓名，体重 (kg),记录日期，备注\n';
-    data.records.weight.forEach(r => {
-      const pet = data.pets.find(p => p._id === r.petId);
-      csv += `${pet ? pet.name : ''},${r.weight || ''},${formatDate(r.recordedAt)},${r.note || ''}\n`;
-    });
-  }
-  
-  // 健康记录
-  if (data.records.health && data.records.health.length > 0) {
-    csv += '\n=== 健康记录 ===\n';
-    csv += '宠物姓名，症状，观察记录，状态，记录日期\n';
-    data.records.health.forEach(r => {
-      const pet = data.pets.find(p => p._id === r.petId);
-      csv += `${pet ? pet.name : ''},${r.symptom || ''},${r.observation || ''},${r.status || ''},${formatDate(r.recordedAt)}\n`;
-    });
-  }
-  
-  // 疫苗记录
-  if (data.records.vaccine && data.records.vaccine.length > 0) {
-    csv += '\n=== 疫苗记录 ===\n';
-    csv += '宠物姓名，疫苗名称，类型，品牌，接种日期\n';
-    data.records.vaccine.forEach(r => {
-      const pet = data.pets.find(p => p._id === r.petId);
-      csv += `${pet ? pet.name : ''},${r.name || ''},${r.type || ''},${r.brand || ''},${formatDate(r.vaccinatedAt)}\n`;
-    });
-  }
-  
-  // 驱虫记录
-  if (data.records.deworming && data.records.deworming.length > 0) {
-    csv += '\n=== 驱虫记录 ===\n';
-    csv += '宠物姓名，类型，品牌，型号，使用日期\n';
-    data.records.deworming.forEach(r => {
-      const pet = data.pets.find(p => p._id === r.petId);
-      csv += `${pet ? pet.name : ''},${r.type === 'internal' ? '体内驱虫' : '体外驱虫'},${r.brand || ''},${r.product || ''},${formatDate(r.usedAt)}\n`;
-    });
-  }
-  
-  // 粮食记录
-  if (data.records.food && data.records.food.length > 0) {
-    csv += '\n=== 粮食记录 ===\n';
-    csv += '宠物姓名，品牌，型号，类型，开始日期，结束日期\n';
-    data.records.food.forEach(r => {
-      const pet = data.pets.find(p => p._id === r.petId);
-      const type = r.type === 'dry' ? '干粮' : r.type === 'wet' ? '湿粮' : '零食';
-      csv += `${pet ? pet.name : ''},${r.brand || ''},${r.product || ''},${type},${formatDate(r.startDate)},${r.endDate ? formatDate(r.endDate) : ''}\n`;
-    });
-  }
-  
-  return csv;
-}
-
-/**
- * 格式化日期
- */
-function formatDate(timestamp) {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}

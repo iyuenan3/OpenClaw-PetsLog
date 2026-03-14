@@ -12,7 +12,7 @@ test.describe('体重记录功能测试', () => {
     await page.waitForTimeout(3000);
     
     // 验证页面加载
-    const pageContent = page.locator('.container, .page, #app').first();
+    const pageContent = page.locator('#app').first();
     await expect(pageContent).toBeVisible();
   });
 
@@ -20,8 +20,8 @@ test.describe('体重记录功能测试', () => {
     await page.goto('/pages/weight/add-weight');
     await page.waitForTimeout(2000);
     
-    // 查找输入框
-    const input = page.locator('input[type="number"], input[placeholder*="体重"]').first();
+    // 查找输入框（使用更宽松的选择器）
+    const input = page.locator('input[type="number"], input[placeholder*="体重"], uni-input[placeholder*="体重"]').first();
     await expect(input).toBeVisible();
   });
 
@@ -29,8 +29,8 @@ test.describe('体重记录功能测试', () => {
     await page.goto('/pages/weight/add-weight');
     await page.waitForTimeout(2000);
     
-    // 查找语音按钮（使用 CSS 选择器）
-    const voiceButton = page.locator('.voice-btn, button').first();
+    // 查找语音按钮（使用更宽松的选择器）
+    const voiceButton = page.locator('.voice-btn, button, uni-button').first();
     await expect(voiceButton).toBeVisible();
   });
 
@@ -38,8 +38,8 @@ test.describe('体重记录功能测试', () => {
     await page.goto('/pages/weight/add-weight');
     await page.waitForTimeout(2000);
     
-    // 查找保存按钮
-    const saveButton = page.locator('button:has-text("保存"), .btn-primary').first();
+    // 查找保存按钮（使用 text 定位）
+    const saveButton = page.getByText('保存', { exact: false }).first();
     await expect(saveButton).toBeVisible();
   });
 

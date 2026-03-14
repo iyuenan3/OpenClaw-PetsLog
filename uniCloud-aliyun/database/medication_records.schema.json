@@ -48,5 +48,15 @@
     },
     "createdAt": { "bsonType": "timestamp", "description": "创建时间" },
     "updatedAt": { "bsonType": "timestamp", "description": "更新时间" }
+  },
+  "indexes": {
+    "petId_index": {
+      "keys": { "petId": 1 },
+      "background": true
+    },
+    "petId_startDate_index": {
+      "keys": { "petId": 1, "startDate": -1 },
+      "background": true
+    }
   }
 }
