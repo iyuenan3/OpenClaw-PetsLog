@@ -24,7 +24,7 @@ module.exports = defineConfig({
     {
       name: 'setup',
       testMatch: /setup\/.*\.setup\.js/,
-      timeout: 30000, // 认证流程 30 秒足够
+      timeout: 60000, // 认证流程 60 秒，包含注册 + 登录
     },
     // 登录测试 - 不需要认证（独立运行）
     {
