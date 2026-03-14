@@ -23,17 +23,21 @@ setup('authenticate as test user', async ({ page }) => {
   await page.screenshot({ path: 'test-results/debug-login-page.png' });
   console.log('📸 已截图：test-results/debug-login-page.png');
   
-  // uni-app 编译后的 input 选择器
-  const usernameInput = page.locator('#username-input');
-  const passwordInput = page.locator('#password-input');
+  // uni-app 编译后 uni-input 内部有原生 input，使用 CSS 选择器找到它
+  const usernameInput = page.locator('#username-input input');
+  const passwordInput = page.locator('#password-input input');
   const loginBtn = page.locator('.btn-primary');
   const registerBtn = page.locator('.btn-info');
   
   console.log('📝 尝试直接登录...');
   
-  // 尝试直接登录
-  await usernameInput.fill('testuser');
-  await passwordInput.fill('Test123456');
+  // 使用 keyboard.type() 而不是 fill()，因为 uni-input 是自定义组件
+  await usernameInput.click();
+  await page.keyboard.type('testuser');
+  
+  await passwordInput.click();
+  await page.keyboard.type('Test123456');
+  
   await loginBtn.click();
   
   // 等待登录响应
@@ -52,9 +56,21 @@ setup('authenticate as test user', async ({ page }) => {
   // 登录失败，尝试注册
   console.log('📝 登录失败，开始注册...');
   
-  // 清空并重新填写
-  await usernameInput.fill('testuser');
-  await passwordInput.fill('Test123456');
+  // 清空输入框并重新填写
+  await usernameInput.click();
+  await page.keyboard.down('Control');
+  await page.keyboard.press('a');
+  await page.keyboard.up('Control');
+  await page.keyboard.press('Backspace');
+  await page.keyboard.type('testuser');
+  
+  await passwordInput.click();
+  await page.keyboard.down('Control');
+  await page.keyboard.press('a');
+  await page.keyboard.up('Control');
+  await page.keyboard.press('Backspace');
+  await page.keyboard.type('Test123456');
+  
   await registerBtn.click();
   
   // 等待注册完成（注册成功后会自动调用登录）
@@ -70,10 +86,13 @@ setup('authenticate as test user', async ({ page }) => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
     
-    await usernameInput.fill('testuser');
-    await passwordInput.fill('Test123456');
-    await loginBtn.click();
+    await usernameInput.click();
+    await page.keyboard.type('testuser');
     
+    await passwordInput.click();
+    await page.keyboard.type('Test123456');
+    
+    await loginBtn.click();
     await page.waitForTimeout(5000);
   }
   
