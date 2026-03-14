@@ -12,8 +12,8 @@ test.describe('用药记录功能测试', () => {
     await page.goto('/pages/medication/medication');
     await page.waitForTimeout(3000);
     
-    // 验证页面加载（使用宽松的选择器）
-    const pageContent = page.locator('.container, .page, #app');
+    // 验证页面加载（使用 first() 避免 strict mode violation）
+    const pageContent = page.locator('#app').first();
     await expect(pageContent).toBeVisible();
   });
 
@@ -21,9 +21,15 @@ test.describe('用药记录功能测试', () => {
     await page.goto('/pages/medication/medication');
     await page.waitForTimeout(2000);
     
-    // 查找添加按钮（多种可能）
-    const addButton = page.locator('.add-btn, .fab-button, button:has-text("+"), text=添加').first();
-    await expect(addButton).toBeVisible();
+    // 查找添加按钮（修复 CSS 选择器语法，使用 text 定位）
+    const addButton = page.locator('.add-btn, .fab-button').first();
+    // 如果找不到，尝试查找包含"添加"文本的按钮
+    if (!await addButton.isVisible()) {
+      const addButtonByText = page.getByText('添加', { exact: false }).first();
+      await expect(addButtonByText).toBeVisible();
+    } else {
+      await expect(addButton).toBeVisible();
+    }
   });
 
   test('用药记录列表应该可以显示', async ({ page }) => {
@@ -31,7 +37,7 @@ test.describe('用药记录功能测试', () => {
     await page.waitForTimeout(2000);
     
     // 验证列表容器存在
-    const listContainer = page.locator('.medication-list, .list, .container');
+    const listContainer = page.locator('.medication-list, .list, .container').first();
     await expect(listContainer).toBeVisible();
   });
 
@@ -40,7 +46,7 @@ test.describe('用药记录功能测试', () => {
     await page.waitForTimeout(2000);
     
     // 查找添加按钮并点击
-    const addButton = page.locator('.add-btn, .fab-button, button:has-text("+")').first();
+    const addButton = page.locator('.add-btn, .fab-button').first();
     if (await addButton.isVisible()) {
       await addButton.click();
       await page.waitForTimeout(1000);

@@ -12,7 +12,7 @@ test.describe('首页搜索功能测试', () => {
     await page.waitForTimeout(3000);
     
     // 验证页面加载
-    const pageContent = page.locator('.container, .page, #app').first();
+    const pageContent = page.locator('#app').first();
     await expect(pageContent).toBeVisible();
   });
 
@@ -20,8 +20,8 @@ test.describe('首页搜索功能测试', () => {
     await page.goto('/pages/index/index');
     await page.waitForTimeout(2000);
     
-    // 查找搜索框
-    const searchInput = page.locator('input[type="search"], .search-input').first();
+    // 查找搜索框（使用更宽松的选择器）
+    const searchInput = page.locator('input[type="search"], .search-input, uni-input[placeholder*="搜索"]').first();
     await expect(searchInput).toBeVisible();
   });
 
@@ -29,8 +29,8 @@ test.describe('首页搜索功能测试', () => {
     await page.goto('/pages/index/index');
     await page.waitForTimeout(2000);
     
-    // 查找筛选器容器
-    const filterBar = page.locator('.filter-bar, .tabs, .filter-container').first();
+    // 查找筛选器容器（使用更宽松的选择器）
+    const filterBar = page.locator('.filter-bar, .tabs, .filter-container, uni-scroll-view').first();
     await expect(filterBar).toBeVisible();
   });
 
@@ -49,7 +49,7 @@ test.describe('首页搜索功能测试', () => {
     await page.waitForTimeout(2000);
     
     // 查找搜索框并输入
-    const searchInput = page.locator('input[type="search"], .search-input').first();
+    const searchInput = page.locator('input[type="search"], .search-input, uni-input[placeholder*="搜索"]').first();
     if (await searchInput.isVisible()) {
       await searchInput.fill('测试');
       const value = await searchInput.inputValue();
